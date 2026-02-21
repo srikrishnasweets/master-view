@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Single Product View</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="shortcut icon" href="Asset/logo.png" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div class="hero-meta-row">
+        <p id="masterHeader" class="hero-master">Loading master...</p>
+        <p id="sectionHeader" class="hero-section">Loading section...</p>
+      </div>
+      <div id="sectionList" class="section-list" aria-label="Sections"></div>
+      <div class="hero-controls">
+        <button id="prevBtn" class="nav-btn" type="button">Prev</button>
+        <span id="productIndex" class="product-index">0 / 0</span>
+        <button id="nextBtn" class="nav-btn" type="button">Next</button>
+      </div>
+    </header>
+
+    <section id="app" class="single-wrap">
+      <div class="loading-card single-card">Loading...</div>
+    </section>
+  </main>
+
+  <footer class="sheet-bar">
+    <div class="sheet-label">Masters</div>
+    <div id="tabs" class="sheet-tabs" aria-label="Master tabs"></div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
