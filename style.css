@@ -37,12 +37,36 @@ body {
 }
 
 .hero {
+  position: relative;
   background: linear-gradient(145deg, #fcfeff, #f5f9ff);
   border: 1px solid #d6e4fb;
   border-radius: 22px;
-  padding: 20px 22px;
+  padding:20px 20px;
   box-shadow: var(--shadow);
   text-align: center;
+}
+
+.hero-top-actions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  z-index: 2;
+}
+
+.tv-id-badge {
+  border: 1px solid #c9dbf3;
+  background: #eef5ff;
+  color: #2e5078;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: clamp(0.85rem, 0.75vw, 1.05rem);
+  font-weight: 800;
 }
 
 .hero-meta-row {
@@ -129,6 +153,14 @@ body {
 
 .logout-btn:hover {
   background: #ffeaea;
+}
+
+.icon-logout-btn {
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
 }
 
 .single-wrap {
@@ -390,7 +422,17 @@ body {
 
   .hero {
     border-radius: 14px;
-    padding: 14px;
+    padding: 52px 14px 14px;
+  }
+
+  .hero-top-actions {
+    top: 10px;
+    right: 10px;
+  }
+
+  .tv-id-badge {
+    padding: 5px 10px;
+    font-size: 0.8rem;
   }
 
   .hero-master,
