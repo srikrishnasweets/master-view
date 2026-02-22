@@ -1,9 +1,12 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwBUJe0ph0jfBoRCPzR5HH5ByCc9KVgfDoNsvWHtyRwqg5RDEf-XefTrIaiKn4HsJEbuA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwba-s2aTC4qHxY5JB1xEZnL0mWJ2ppc5rw-vOWS7szRKqWVlJ75q0C1XpzxXpv1gXR/exec";
+const TV_LOGIN_KEY = "tvLoginId";
+const SHOW_CURRENT_SCREEN_ONLY = true;
 
 let rawData = [];
 let currentMaster = "";
 let productsData = [];
 let currentProductIndex = 0;
+let activeTvId = "";
 
 const tabsEl = document.getElementById("tabs");
 const appEl = document.getElementById("app");
@@ -13,6 +16,111 @@ const sectionListEl = document.getElementById("sectionList");
 const prevBtnEl = document.getElementById("prevBtn");
 const nextBtnEl = document.getElementById("nextBtn");
 const productIndexEl = document.getElementById("productIndex");
+const logoutBtnEl = document.getElementById("logoutBtn");
+const tvLoginOverlayEl = document.getElementById("tvLoginOverlay");
+const tvLoginFormEl = document.getElementById("tvLoginForm");
+const tvIdInputEl = document.getElementById("tvIdInput");
+const tvLoginErrorEl = document.getElementById("tvLoginError");
+
+function normalizeTvId(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  if (/^\d+$/.test(text)) return String(Number(text));
+  return text;
+}
+
+function setLoginError(message) {
+  if (!tvLoginErrorEl) return;
+  const errorMessage = String(message ?? "").trim();
+  if (!errorMessage) {
+    tvLoginErrorEl.hidden = true;
+    tvLoginErrorEl.textContent = "";
+    return;
+  }
+  tvLoginErrorEl.hidden = false;
+  tvLoginErrorEl.textContent = errorMessage;
+}
+
+function normalizeKey(value) {
+  return String(value ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function getRowValue(row, aliases) {
+  if (!row || typeof row !== "object") return "";
+  const normalizedAliases = aliases.map(normalizeKey);
+  const directKey = Object.keys(row).find((key) => normalizedAliases.includes(normalizeKey(key)));
+  return directKey ? row[directKey] : "";
+}
+
+function getRowTvId(row) {
+  return normalizeTvId(getRowValue(row, ["tvid", "tv id", "tv_id"]));
+}
+
+function getRowMaster(row) {
+  return normalizeTvId(getRowValue(row, ["master"]));
+}
+
+function getRowGroup(row) {
+  return normalizeTvId(getRowValue(row, ["group"]));
+}
+
+function getRowProduct(row) {
+  return normalizeTvId(getRowValue(row, ["product"]));
+}
+
+function getRowPackFormat(row) {
+  return normalizeTvId(getRowValue(row, ["packformat", "pack format", "pack_format"]));
+}
+
+function getRowQty(row) {
+  return getRowValue(row, ["qty", "quantity"]);
+}
+
+function showLoginOverlay() {
+  tvLoginOverlayEl.hidden = false;
+  setLoginError("");
+  window.setTimeout(() => tvIdInputEl.focus(), 0);
+}
+
+function hideLoginOverlay() {
+  tvLoginOverlayEl.hidden = true;
+}
+
+function resetViewForLoggedOut() {
+  rawData = [];
+  currentMaster = "";
+  productsData = [];
+  currentProductIndex = 0;
+  tabsEl.innerHTML = "";
+  updateHeader([]);
+  appEl.innerHTML = '<div class="loading-card single-card">Enter TV ID to continue.</div>';
+  productIndexEl.textContent = "0 / 0";
+  prevBtnEl.disabled = true;
+  nextBtnEl.disabled = true;
+}
+
+function buildApiUrl(tvId, currentOnly) {
+  const normalizedTvId = normalizeTvId(tvId);
+  const queryParts = [];
+  if (normalizedTvId) queryParts.push(`tvId=${encodeURIComponent(normalizedTvId)}`);
+  if (currentOnly) queryParts.push("currentOnly=true");
+  if (!queryParts.length) return API_URL;
+  const separator = API_URL.includes("?") ? "&" : "?";
+  return `${API_URL}${separator}${queryParts.join("&")}`;
+}
+
+async function fetchRowsForTvId(tvId) {
+  const res = await fetch(buildApiUrl(tvId, SHOW_CURRENT_SCREEN_ONLY));
+  const json = await res.json();
+  return Array.isArray(json?.data) ? json.data : [];
+}
+
+function applyRows(rows, tvId) {
+  activeTvId = normalizeTvId(tvId);
+  rawData = Array.isArray(rows) ? rows : [];
+  createTabs();
+  return rawData.length;
+}
 
 function getFullscreenIconHtml(isFullscreen) {
   return isFullscreen
@@ -50,7 +158,7 @@ function escapeHtml(value) {
 }
 
 function updateHeader(rows) {
-  const sections = [...new Set(rows.map((row) => row.group).filter(Boolean))].sort();
+  const sections = [...new Set(rows.map((row) => getRowGroup(row)).filter(Boolean))].sort();
 
   if (!currentMaster) {
     masterHeaderEl.textContent = "Master: -";
@@ -83,9 +191,9 @@ function buildProductData(rows) {
   const map = {};
 
   rows.forEach((row) => {
-    const product = row.product || "Unnamed Product";
-    const qty = Number(row.qty) || 0;
-    const format = (row.packFormat || "OTHER").toUpperCase();
+    const product = getRowProduct(row) || "Unnamed Product";
+    const qty = Number(getRowQty(row)) || 0;
+    const format = (getRowPackFormat(row) || "OTHER").toUpperCase();
 
     if (!map[product]) {
       map[product] = { name: product, formats: {}, totalQty: 0 };
@@ -204,14 +312,14 @@ function setMaster(master, tabButton) {
   document.querySelectorAll(".sheet-tab").forEach((tab) => tab.classList.remove("active"));
   if (tabButton) tabButton.classList.add("active");
 
-  const rows = rawData.filter((row) => row.master === currentMaster);
+  const rows = rawData.filter((row) => getRowMaster(row) === currentMaster);
   updateHeader(rows);
   productsData = buildProductData(rows);
   renderSingleCard();
 }
 
 function createTabs() {
-  const masters = [...new Set(rawData.map((d) => d.master).filter(Boolean))].sort();
+  const masters = [...new Set(rawData.map((d) => getRowMaster(d)).filter(Boolean))].sort();
   tabsEl.innerHTML = "";
 
   if (!masters.length) {
@@ -258,11 +366,61 @@ document.addEventListener("fullscreenchange", () => {
 });
 
 async function init() {
+  const savedTvId = normalizeTvId(localStorage.getItem(TV_LOGIN_KEY));
+  if (savedTvId) {
+    activeTvId = savedTvId;
+    hideLoginOverlay();
+  } else {
+    showLoginOverlay();
+    resetViewForLoggedOut();
+  }
+
+  tvLoginFormEl.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const enteredTvId = normalizeTvId(tvIdInputEl.value);
+    if (!enteredTvId) {
+      setLoginError("Please enter TV ID.");
+      return;
+    }
+
+    appEl.innerHTML = '<div class="loading-card single-card">Loading...</div>';
+    try {
+      const rows = await fetchRowsForTvId(enteredTvId);
+      const matchCount = applyRows(rows, enteredTvId);
+      if (!matchCount) {
+        setLoginError(`No data found for TV ID ${enteredTvId}.`);
+        resetViewForLoggedOut();
+        return;
+      }
+
+      setLoginError("");
+      localStorage.setItem(TV_LOGIN_KEY, enteredTvId);
+      hideLoginOverlay();
+    } catch (error) {
+      setLoginError("Unable to load data. Please try again.");
+      resetViewForLoggedOut();
+    }
+  });
+
+  logoutBtnEl.addEventListener("click", () => {
+    localStorage.removeItem(TV_LOGIN_KEY);
+    activeTvId = "";
+    showLoginOverlay();
+    resetViewForLoggedOut();
+  });
+
   try {
-    const res = await fetch(API_URL);
-    const json = await res.json();
-    rawData = Array.isArray(json?.data) ? json.data : [];
-    createTabs();
+    if (activeTvId) {
+      const rows = await fetchRowsForTvId(activeTvId);
+      const matchCount = applyRows(rows, activeTvId);
+      if (!matchCount) {
+        localStorage.removeItem(TV_LOGIN_KEY);
+        activeTvId = "";
+        resetViewForLoggedOut();
+        setLoginError("Saved TV ID has no matching data. Please login again.");
+        showLoginOverlay();
+      }
+    }
   } catch (error) {
     appEl.innerHTML = '<div class="empty-card single-card">Unable to load data. Please try again.</div>';
   }

@@ -23,6 +23,7 @@
         <button id="prevBtn" class="nav-btn" type="button">Prev</button>
         <span id="productIndex" class="product-index">0 / 0</span>
         <button id="nextBtn" class="nav-btn" type="button">Next</button>
+        <button id="logoutBtn" class="nav-btn logout-btn" type="button">Logout</button>
       </div>
     </header>
 
@@ -35,6 +36,16 @@
     <div class="sheet-label">Masters</div>
     <div id="tabs" class="sheet-tabs" aria-label="Master tabs"></div>
   </footer>
+
+  <div id="tvLoginOverlay" class="login-overlay" hidden>
+    <form id="tvLoginForm" class="login-card" autocomplete="off">
+      <h2>TV Login</h2>
+      <label for="tvIdInput">Enter TV ID</label>
+      <input id="tvIdInput" type="text" name="tvId" placeholder="e.g. 1" />
+      <p id="tvLoginError" class="login-error" hidden></p>
+      <button type="submit" class="nav-btn">Login</button>
+    </form>
+  </div>
 
   <script src="script.js"></script>
 </body>
