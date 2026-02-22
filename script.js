@@ -1,13 +1,14 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyqL3PT6w6oXGEfgqCwG44Ahxu6o9dhm-7T4kPltKlP5OdAv4uYPo1vPM_WOlEmm3is/exec";
 const TV_LOGIN_KEY = "tvLoginId";
 const SHOW_CURRENT_SCREEN_ONLY = true;
+const AUTO_REFRESH_MS = 30000;
 
 let rawData = [];
-let currentMaster = "";
 let productsData = [];
-let currentProductIndex = 0;
 let activeTvId = "";
-let productRotateTimer = null;
+let autoRefreshTimer = null;
+let isRefreshInFlight = false;
+let lastRowsFingerprint = "";
 
 const appEl = document.getElementById("app");
 const masterHeaderEl = document.getElementById("masterHeader");
@@ -89,10 +90,9 @@ function hideLoginOverlay() {
 
 function resetViewForLoggedOut() {
   rawData = [];
-  currentMaster = "";
   productsData = [];
-  currentProductIndex = 0;
-  clearProductRotation();
+  lastRowsFingerprint = "";
+  stopAutoRefresh();
   updateHeader([]);
   appEl.innerHTML = '<div class="loading-card single-card">Enter TV ID to continue.</div>';
   if (productIndexEl) productIndexEl.textContent = "0 / 0";
@@ -107,21 +107,19 @@ function updateTvIdBadge(tvId) {
   tvIdBadgeEl.textContent = normalized ? `TV ID: ${normalized}` : "TV ID: -";
 }
 
-function clearProductRotation() {
-  if (productRotateTimer) {
-    window.clearInterval(productRotateTimer);
-    productRotateTimer = null;
+function stopAutoRefresh() {
+  if (autoRefreshTimer) {
+    window.clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
   }
 }
 
-function restartProductRotation() {
-  clearProductRotation();
-  if (productsData.length <= 1) return;
-  productRotateTimer = window.setInterval(() => {
-    if (!productsData.length) return;
-    currentProductIndex = (currentProductIndex + 1) % productsData.length;
-    renderSingleCard();
-  }, 15000);
+function startAutoRefresh() {
+  stopAutoRefresh();
+  if (!activeTvId) return;
+  autoRefreshTimer = window.setInterval(() => {
+    refreshRowsInBackground();
+  }, AUTO_REFRESH_MS);
 }
 
 function buildApiUrl(tvId, currentOnly) {
@@ -140,38 +138,37 @@ async function fetchRowsForTvId(tvId) {
   return Array.isArray(json?.data) ? json.data : [];
 }
 
-function applyRows(rows, tvId) {
+function createRowsFingerprint(rows) {
+  if (!Array.isArray(rows)) return "";
+  return rows
+    .map((row) => {
+      if (!row || typeof row !== "object") return JSON.stringify(row);
+      const sorted = {};
+      Object.keys(row)
+        .sort()
+        .forEach((key) => {
+          sorted[key] = row[key];
+        });
+      return JSON.stringify(sorted);
+    })
+    .sort()
+    .join("|");
+}
+
+function applyRows(rows, tvId, options = {}) {
+  const { forceRender = false, animate = false } = options;
   activeTvId = normalizeTvId(tvId);
   updateTvIdBadge(activeTvId);
   rawData = Array.isArray(rows) ? rows : [];
-  renderDataView();
-  return rawData.length;
-}
 
-function getFullscreenIconHtml(isFullscreen) {
-  return isFullscreen
-    ? '<i class="bi bi-fullscreen-exit" aria-hidden="true"></i>'
-    : '<i class="bi bi-fullscreen" aria-hidden="true"></i>';
-}
-
-async function toggleCardFullscreen() {
-  const cardEl = document.querySelector(".product-box.single-card");
-  if (!cardEl) return;
-
-  if (document.fullscreenElement === cardEl) {
-    await document.exitFullscreen();
-    return;
+  const nextFingerprint = createRowsFingerprint(rawData);
+  const changed = forceRender || nextFingerprint !== lastRowsFingerprint;
+  if (changed) {
+    lastRowsFingerprint = nextFingerprint;
+    renderDataView({ animate });
   }
 
-  await cardEl.requestFullscreen();
-}
-
-function syncFullscreenButton() {
-  const btn = document.getElementById("fullscreenBtn");
-  if (!btn) return;
-  const isFullscreen = Boolean(document.fullscreenElement);
-  btn.setAttribute("aria-label", isFullscreen ? "Exit fullscreen" : "Enter fullscreen");
-  btn.innerHTML = getFullscreenIconHtml(isFullscreen);
+  return { matchCount: rawData.length, changed };
 }
 
 function escapeHtml(value) {
@@ -220,71 +217,35 @@ function updateHeader(rows) {
     .join("");
 }
 
-function updateHeaderForProduct(item) {
-  if (!item) {
-    masterHeaderEl.textContent = "Master: -";
-    sectionHeaderEl.textContent = "Section: -";
-    sectionListEl.innerHTML = "";
-    return;
-  }
-
-  const masters = Array.isArray(item.masters) ? item.masters : [];
-  const groups = Array.isArray(item.groups) ? item.groups : [];
-
-  if (!masters.length) {
-    masterHeaderEl.textContent = "Master: -";
-  } else if (masters.length === 1) {
-    masterHeaderEl.textContent = `Master: ${masters[0]}`;
-  } else {
-    masterHeaderEl.textContent = `Masters: ${masters.join(", ")}`;
-  }
-
-  if (!groups.length) {
-    sectionHeaderEl.textContent = "Section: -";
-    sectionListEl.innerHTML = "";
-    return;
-  }
-
-  if (groups.length === 1) {
-    sectionHeaderEl.textContent = `Section: ${groups[0]}`;
-    sectionListEl.innerHTML = "";
-    return;
-  }
-
-  sectionHeaderEl.textContent = `Sections (${groups.length})`;
-  sectionListEl.innerHTML = groups
-    .map((section) => `<span class="section-pill">${escapeHtml(section)}</span>`)
-    .join("");
-}
-
 function buildProductData(rows) {
   const map = {};
 
   rows.forEach((row) => {
+    const master = getRowMaster(row);
     const product = getRowProduct(row) || "Unnamed Product";
+    const screenKey = `${master || "-"}::${product}`;
     const qty = Number(getRowQty(row)) || 0;
     const format = (getRowPackFormat(row) || "OTHER").toUpperCase();
 
-    if (!map[product]) {
-      map[product] = { name: product, formats: {}, totalQty: 0, masters: new Set(), groups: new Set() };
+    if (!map[screenKey]) {
+      map[screenKey] = { name: product, formats: {}, totalQty: 0, masters: new Set(), groups: new Set() };
     }
 
-    if (!map[product].formats[format]) {
-      map[product].formats[format] = { rows: {}, total: 0 };
+    if (!map[screenKey].formats[format]) {
+      map[screenKey].formats[format] = { rows: {}, total: 0 };
     }
 
-    if (!map[product].formats[format].rows[qty]) {
-      map[product].formats[format].rows[qty] = { sum: 0, count: 0 };
+    if (!map[screenKey].formats[format].rows[qty]) {
+      map[screenKey].formats[format].rows[qty] = { sum: 0, count: 0 };
     }
 
-    map[product].formats[format].rows[qty].sum += qty;
-    map[product].formats[format].rows[qty].count += 1;
-    map[product].formats[format].total += qty;
-    map[product].totalQty += qty;
-    const master = getRowMaster(row);
+    map[screenKey].formats[format].rows[qty].sum += qty;
+    map[screenKey].formats[format].rows[qty].count += 1;
+    map[screenKey].formats[format].total += qty;
+    map[screenKey].totalQty += qty;
     const group = getRowGroup(row);
-    if (master) map[product].masters.add(master);
-    if (group) map[product].groups.add(group);
+    if (master) map[screenKey].masters.add(master);
+    if (group) map[screenKey].groups.add(group);
   });
   return Object.values(map)
     .map((item) => ({
@@ -303,28 +264,18 @@ function formatSort(a, b) {
   return a.localeCompare(b);
 }
 
-function renderSingleCard() {
-  if (!productsData.length) {
-    appEl.innerHTML = '<div class="empty-card single-card">No products found for this master.</div>';
-    if (productIndexEl) productIndexEl.textContent = "0 / 0";
-    if (prevBtnEl) prevBtnEl.disabled = true;
-    if (nextBtnEl) nextBtnEl.disabled = true;
-    return;
-  }
-
-  const item = productsData[currentProductIndex];
-  updateHeaderForProduct(item);
+function buildProductCardHtml(item, index) {
   const formatKeys = Object.keys(item.formats).sort(formatSort);
+  const masterText = item.masters.length ? item.masters.join(", ") : "-";
+  const groupText = item.groups.length ? item.groups.join(", ") : "-";
 
   let html = `
     <article class="product-box single-card">
+      <div class="product-screen-label">${escapeHtml(masterText)} | Section: ${escapeHtml(groupText)}</div>
       <div class="product-head">
-        <div class="product-title">${escapeHtml(item.name)} BP</div>
+        <div class="product-title">${escapeHtml(item.name)}</div>
         <div class="product-head-right">
           <div class="product-total">${item.totalQty.toFixed(2)}</div>
-          <button id="fullscreenBtn" class="fullscreen-btn" type="button" aria-label="${document.fullscreenElement ? "Exit fullscreen" : "Enter fullscreen"}">
-            ${getFullscreenIconHtml(Boolean(document.fullscreenElement))}
-          </button>
         </div>
       </div>
       <table class="table">
@@ -371,24 +322,43 @@ function renderSingleCard() {
       </table>
     </article>
   `;
+  return html;
+}
+
+function renderSingleCard(options = {}) {
+  const { animate = false } = options;
+  if (!productsData.length) {
+    appEl.innerHTML = '<div class="empty-card single-card">No products found for this master.</div>';
+    if (productIndexEl) productIndexEl.textContent = "0 / 0";
+    if (prevBtnEl) prevBtnEl.disabled = true;
+    if (nextBtnEl) nextBtnEl.disabled = true;
+    return;
+  }
+
+  updateHeader(rawData);
+  const visibleItems = productsData.slice(0, 2);
+  const html = `
+    <div class="split-view ${visibleItems.length === 1 ? "single" : "double"}">
+      ${visibleItems.map((item, index) => buildProductCardHtml(item, index)).join("")}
+    </div>
+  `;
 
   appEl.innerHTML = html;
-  const fullscreenBtn = document.getElementById("fullscreenBtn");
-  if (fullscreenBtn) {
-    fullscreenBtn.addEventListener("click", () => {
-      toggleCardFullscreen().catch(() => {});
+  if (animate) {
+    appEl.classList.add("is-refreshing");
+    window.requestAnimationFrame(() => {
+      appEl.classList.remove("is-refreshing");
     });
   }
-  syncFullscreenButton();
 
-  if (productIndexEl) productIndexEl.textContent = `${currentProductIndex + 1} / ${productsData.length}`;
+  if (productIndexEl) productIndexEl.textContent = `${visibleItems.length} / ${visibleItems.length}`;
   if (prevBtnEl) prevBtnEl.disabled = productsData.length <= 1;
   if (nextBtnEl) nextBtnEl.disabled = productsData.length <= 1;
 }
 
-function renderDataView() {
+function renderDataView(options = {}) {
+  const { animate = false } = options;
   if (!rawData.length) {
-    clearProductRotation();
     masterHeaderEl.textContent = "Master: -";
     sectionHeaderEl.textContent = "Section: -";
     sectionListEl.innerHTML = "";
@@ -399,36 +369,40 @@ function renderDataView() {
     return;
   }
 
-  currentMaster = getRowMaster(rawData[0]) || "";
-  currentProductIndex = 0;
   productsData = buildProductData(rawData);
-  renderSingleCard();
-  restartProductRotation();
+  renderSingleCard({ animate });
+}
+
+async function refreshRowsInBackground() {
+  if (!activeTvId || isRefreshInFlight) return;
+  isRefreshInFlight = true;
+  try {
+    const rows = await fetchRowsForTvId(activeTvId);
+    if (!rows.length) return;
+    applyRows(rows, activeTvId, { animate: true });
+  } catch (error) {
+    // Ignore transient network errors and keep the current TV view visible.
+  } finally {
+    isRefreshInFlight = false;
+  }
 }
 
 if (prevBtnEl) {
   prevBtnEl.addEventListener("click", () => {
-    if (!productsData.length) return;
-    currentProductIndex = (currentProductIndex - 1 + productsData.length) % productsData.length;
-    renderSingleCard();
+    // Manual previous/next is disabled in split view mode.
   });
 }
 
 if (nextBtnEl) {
   nextBtnEl.addEventListener("click", () => {
-    if (!productsData.length) return;
-    currentProductIndex = (currentProductIndex + 1) % productsData.length;
-    renderSingleCard();
+    // Manual previous/next is disabled in split view mode.
   });
 }
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "ArrowLeft" && prevBtnEl) prevBtnEl.click();
-  if (event.key === "ArrowRight" && nextBtnEl) nextBtnEl.click();
-});
-
-document.addEventListener("fullscreenchange", () => {
-  syncFullscreenButton();
+  if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    event.preventDefault();
+  }
 });
 
 async function init() {
@@ -453,7 +427,7 @@ async function init() {
     appEl.innerHTML = '<div class="loading-card single-card">Loading...</div>';
     try {
       const rows = await fetchRowsForTvId(enteredTvId);
-      const matchCount = applyRows(rows, enteredTvId);
+      const { matchCount } = applyRows(rows, enteredTvId, { forceRender: true });
       if (!matchCount) {
         setLoginError(`No data found for TV ID ${enteredTvId}.`);
         resetViewForLoggedOut();
@@ -463,6 +437,7 @@ async function init() {
       setLoginError("");
       localStorage.setItem(TV_LOGIN_KEY, enteredTvId);
       hideLoginOverlay();
+      startAutoRefresh();
     } catch (error) {
       setLoginError("Unable to load data. Please try again.");
       resetViewForLoggedOut();
@@ -479,13 +454,15 @@ async function init() {
   try {
     if (activeTvId) {
       const rows = await fetchRowsForTvId(activeTvId);
-      const matchCount = applyRows(rows, activeTvId);
+      const { matchCount } = applyRows(rows, activeTvId, { forceRender: true });
       if (!matchCount) {
         localStorage.removeItem(TV_LOGIN_KEY);
         activeTvId = "";
         resetViewForLoggedOut();
         setLoginError("Saved TV ID has no matching data. Please login again.");
         showLoginOverlay();
+      } else {
+        startAutoRefresh();
       }
     }
   } catch (error) {
