@@ -18,11 +18,39 @@ const prevBtnEl = document.getElementById("prevBtn");
 const nextBtnEl = document.getElementById("nextBtn");
 const productIndexEl = document.getElementById("productIndex");
 const logoutBtnEl = document.getElementById("logoutBtn");
+const fullscreenToggleBtnEl = document.getElementById("fullscreenToggleBtn");
 const tvIdBadgeEl = document.getElementById("tvIdBadge");
 const tvLoginOverlayEl = document.getElementById("tvLoginOverlay");
 const tvLoginFormEl = document.getElementById("tvLoginForm");
 const tvIdInputEl = document.getElementById("tvIdInput");
 const tvLoginErrorEl = document.getElementById("tvLoginError");
+
+function updateFullscreenButtonUi() {
+  if (!fullscreenToggleBtnEl) return;
+  const iconEl = fullscreenToggleBtnEl.querySelector("i");
+  const isFullscreen = Boolean(document.fullscreenElement);
+  document.body.classList.toggle("fullscreen-mode", isFullscreen);
+  fullscreenToggleBtnEl.setAttribute("aria-label", isFullscreen ? "Exit fullscreen" : "Enter fullscreen");
+  fullscreenToggleBtnEl.setAttribute("title", isFullscreen ? "Exit fullscreen" : "Enter fullscreen");
+  if (iconEl) {
+    iconEl.className = isFullscreen ? "bi bi-fullscreen-exit" : "bi bi-arrows-fullscreen";
+  }
+}
+
+async function toggleFullscreen() {
+  if (!document.fullscreenEnabled) return;
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (error) {
+    // Keep view functional even if browser blocks fullscreen.
+  } finally {
+    updateFullscreenButtonUi();
+  }
+}
 
 function normalizeTvId(value) {
   const text = String(value ?? "").trim();
@@ -403,6 +431,17 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
     event.preventDefault();
   }
+});
+
+if (fullscreenToggleBtnEl) {
+  fullscreenToggleBtnEl.addEventListener("click", () => {
+    toggleFullscreen();
+  });
+  updateFullscreenButtonUi();
+}
+
+document.addEventListener("fullscreenchange", () => {
+  updateFullscreenButtonUi();
 });
 
 async function init() {
