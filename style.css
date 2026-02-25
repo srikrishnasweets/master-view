@@ -30,7 +30,6 @@ body {
 
 .page {
   margin: 0 auto;
-  height: calc(100vh - 98px);
   display: flex;
   flex-direction: column;
   padding: 12px 12px 10px;
@@ -94,7 +93,6 @@ body {
 }
 
 .section-list {
-  margin-top: 10px;
   display: flex;
   gap: 10px;
   justify-content: center;
@@ -467,7 +465,6 @@ body.fullscreen-mode .sheet-tabs {
   }
 
   .page {
-    height: calc(100vh - 88px);
     padding: 10px 10px 8px;
   }
 
@@ -506,5 +503,64 @@ body.fullscreen-mode .sheet-tabs {
 
   .product-total {
     font-size: clamp(1.1rem, 4.5vw, 1.7rem);
+  }
+}
+.section-table-card {
+  background: #f2f2f2;
+  border: 1px solid #1f1f1f;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.section-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: #f2f2f2;
+}
+
+.section-table th,
+.section-table td {
+  border: 1px solid #1f1f1f;
+  padding: 6px 10px;
+  font-size: clamp(1rem, 1.15vw, 1.8rem);
+  line-height: 1.15;
+}
+
+.section-table thead th {
+  background: #4f81bd;
+  color: #ffffff;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.section-table th:first-child,
+.section-table td:first-child {
+  width: 64%;
+  text-align: left;
+}
+
+.section-table th:not(:first-child),
+.section-table td:not(:first-child),
+.section-table td.num {
+  width: 12%;
+  text-align: right;
+}
+
+.section-table tbody tr.summary-row td,
+.section-table tbody tr.master-summary-row td {
+  font-weight: 800;
+}
+
+#app.is-refreshing .section-table-card {
+  opacity: 0.75;
+}
+
+@media (max-width: 900px) {
+  .section-table th,
+  .section-table td {
+    padding: 6px;
+    font-size: clamp(0.9rem, 3vw, 1.2rem);
   }
 }

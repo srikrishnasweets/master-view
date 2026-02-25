@@ -1,10 +1,8 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyqL3PT6w6oXGEfgqCwG44Ahxu6o9dhm-7T4kPltKlP5OdAv4uYPo1vPM_WOlEmm3is/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwaF9TqH6RS2X0oX-aEua8XK1wFLL-pymmmAOsaEHHz1VHeFtMY6mJIDPo1fNDCa6-C/exec";
 const TV_LOGIN_KEY = "tvLoginId";
-const SHOW_CURRENT_SCREEN_ONLY = true;
-const AUTO_REFRESH_MS = 30000;
+const AUTO_REFRESH_MS = 5000;
 
 let rawData = [];
-let productsData = [];
 let activeTvId = "";
 let autoRefreshTimer = null;
 let isRefreshInFlight = false;
@@ -14,9 +12,6 @@ const appEl = document.getElementById("app");
 const masterHeaderEl = document.getElementById("masterHeader");
 const sectionHeaderEl = document.getElementById("sectionHeader");
 const sectionListEl = document.getElementById("sectionList");
-const prevBtnEl = document.getElementById("prevBtn");
-const nextBtnEl = document.getElementById("nextBtn");
-const productIndexEl = document.getElementById("productIndex");
 const logoutBtnEl = document.getElementById("logoutBtn");
 const fullscreenToggleBtnEl = document.getElementById("fullscreenToggleBtn");
 const tvIdBadgeEl = document.getElementById("tvIdBadge");
@@ -59,6 +54,15 @@ function normalizeTvId(value) {
   return text;
 }
 
+function normalizeKey(value) {
+  return String(value ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function isTrueLike(value) {
+  const v = String(value ?? "").trim().toLowerCase();
+  return v === "true" || v === "1" || v === "yes" || v === "y";
+}
+
 function setLoginError(message) {
   if (!tvLoginErrorEl) return;
   const errorMessage = String(message ?? "").trim();
@@ -71,10 +75,6 @@ function setLoginError(message) {
   tvLoginErrorEl.textContent = errorMessage;
 }
 
-function normalizeKey(value) {
-  return String(value ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
 function getRowValue(row, aliases) {
   if (!row || typeof row !== "object") return "";
   const normalizedAliases = aliases.map(normalizeKey);
@@ -83,27 +83,31 @@ function getRowValue(row, aliases) {
 }
 
 function getRowTvId(row) {
-  return normalizeTvId(getRowValue(row, ["tvid", "tv id", "tv_id"]));
+  return normalizeTvId(getRowValue(row, ["tv", "tvid", "tv id", "tv_id"]));
 }
 
 function getRowMaster(row) {
-  return normalizeTvId(getRowValue(row, ["master"]));
+  return String(getRowValue(row, ["master"])).trim();
 }
 
-function getRowGroup(row) {
-  return normalizeTvId(getRowValue(row, ["group"]));
+function getRowSection(row) {
+  return String(getRowValue(row, ["section", "group"])).trim();
 }
 
 function getRowProduct(row) {
-  return normalizeTvId(getRowValue(row, ["product"]));
+  return String(getRowValue(row, ["product"])).trim();
 }
 
-function getRowPackFormat(row) {
-  return normalizeTvId(getRowValue(row, ["packformat", "pack format", "pack_format"]));
+function getRowPacked(row) {
+  return getRowValue(row, ["packed"]);
 }
 
-function getRowQty(row) {
-  return getRowValue(row, ["qty", "quantity"]);
+function getRowTray(row) {
+  return getRowValue(row, ["tray"]);
+}
+
+function getRowTotal(row) {
+  return getRowValue(row, ["total"]);
 }
 
 function showLoginOverlay() {
@@ -118,14 +122,10 @@ function hideLoginOverlay() {
 
 function resetViewForLoggedOut() {
   rawData = [];
-  productsData = [];
   lastRowsFingerprint = "";
   stopAutoRefresh();
   updateHeader([]);
   appEl.innerHTML = '<div class="loading-card single-card">Enter TV ID to continue.</div>';
-  if (productIndexEl) productIndexEl.textContent = "0 / 0";
-  if (prevBtnEl) prevBtnEl.disabled = true;
-  if (nextBtnEl) nextBtnEl.disabled = true;
   updateTvIdBadge("");
 }
 
@@ -155,13 +155,12 @@ function buildApiUrl(tvId, currentOnly) {
   const queryParts = [];
   if (normalizedTvId) queryParts.push(`tvId=${encodeURIComponent(normalizedTvId)}`);
   if (currentOnly) queryParts.push("currentOnly=true");
-  if (!queryParts.length) return API_URL;
   const separator = API_URL.includes("?") ? "&" : "?";
   return `${API_URL}${separator}${queryParts.join("&")}`;
 }
 
-async function fetchRowsForTvId(tvId) {
-  const res = await fetch(buildApiUrl(tvId, SHOW_CURRENT_SCREEN_ONLY));
+async function fetchRowsForTvId(tvId, currentOnly) {
+  const res = await fetch(buildApiUrl(tvId, currentOnly));
   const json = await res.json();
   return Array.isArray(json?.data) ? json.data : [];
 }
@@ -208,9 +207,19 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function formatNumberLike(value) {
+  if (value === null || value === undefined) return "-";
+  const text = String(value).trim();
+  if (!text) return "-";
+  if (text === "-") return "-";
+  const num = Number(text);
+  if (Number.isFinite(num)) return num.toFixed(2);
+  return text;
+}
+
 function updateHeader(rows) {
   const masters = [...new Set(rows.map((row) => getRowMaster(row)).filter(Boolean))].sort();
-  const sections = [...new Set(rows.map((row) => getRowGroup(row)).filter(Boolean))].sort();
+  const sections = [...new Set(rows.map((row) => getRowSection(row)).filter(Boolean))].sort();
 
   if (!rows.length) {
     masterHeaderEl.textContent = "Master: -";
@@ -220,193 +229,123 @@ function updateHeader(rows) {
   }
 
   if (masters.length === 1) {
-    masterHeaderEl.textContent = `Master: ${masters[0]}`;
+    masterHeaderEl.textContent = "MASTER: " + masters[0].toUpperCase();
   } else if (masters.length > 1) {
-    masterHeaderEl.textContent = `Masters: ${masters.slice(0, 3).join(", ")}${masters.length > 3 ? "..." : ""}`;
+    masterHeaderEl.textContent = "MASTER: " + masters.map((m) => m.toUpperCase()).join(" | ");
   } else {
-    masterHeaderEl.textContent = "Master: -";
-  }
-
-  if (!sections.length) {
-    sectionHeaderEl.textContent = "Section: -";
-    sectionListEl.innerHTML = "";
-    return;
+    masterHeaderEl.textContent = "MASTER";
   }
 
   if (sections.length === 1) {
-    sectionHeaderEl.textContent = `Section: ${sections[0]}`;
+    sectionHeaderEl.textContent = sections[0].toUpperCase();
     sectionListEl.innerHTML = "";
     return;
   }
 
-  sectionHeaderEl.textContent = `Sections (${sections.length})`;
+  sectionHeaderEl.textContent = sections.length ? `SECTIONS (${sections.length})` : "Section: -";
   sectionListEl.innerHTML = sections
-    .map((section) => `<span class="section-pill">${escapeHtml(section)}</span>`)
+    .map((section) => `<span class="section-pill">${escapeHtml(section.toUpperCase())}</span>`)
     .join("");
 }
 
-function buildProductData(rows) {
-  const map = {};
+function buildSectionTableHtml(rows) {
+  const sections = [...new Set(rows.map((row) => getRowSection(row)).filter(Boolean))];
+  const sectionTitle = sections[0] || "SECTION";
+  const masters = [...new Set(rows.map((row) => getRowMaster(row)).filter(Boolean))];
+  const masterName = masters[0] || "MASTER";
 
-  rows.forEach((row) => {
+  let summaryRow = rows.find((row) => {
+    const product = getRowProduct(row);
     const master = getRowMaster(row);
-    const product = getRowProduct(row) || "Unnamed Product";
-    const screenKey = `${master || "-"}::${product}`;
-    const qty = Number(getRowQty(row)) || 0;
-    const format = (getRowPackFormat(row) || "OTHER").toUpperCase();
-
-    if (!map[screenKey]) {
-      map[screenKey] = { name: product, formats: {}, totalQty: 0, masters: new Set(), groups: new Set() };
-    }
-
-    if (!map[screenKey].formats[format]) {
-      map[screenKey].formats[format] = { rows: {}, total: 0 };
-    }
-
-    if (!map[screenKey].formats[format].rows[qty]) {
-      map[screenKey].formats[format].rows[qty] = { sum: 0, count: 0 };
-    }
-
-    map[screenKey].formats[format].rows[qty].sum += qty;
-    map[screenKey].formats[format].rows[qty].count += 1;
-    map[screenKey].formats[format].total += qty;
-    map[screenKey].totalQty += qty;
-    const group = getRowGroup(row);
-    if (master) map[screenKey].masters.add(master);
-    if (group) map[screenKey].groups.add(group);
+    return product && master && product.toLowerCase() === master.toLowerCase();
   });
-  return Object.values(map)
-    .map((item) => ({
-      ...item,
-      masters: [...item.masters].sort(),
-      groups: [...item.groups].sort()
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-}
 
-function formatSort(a, b) {
-  const order = { ASSORT: 0, TRAY: 1 };
-  const aOrder = Object.prototype.hasOwnProperty.call(order, a) ? order[a] : 99;
-  const bOrder = Object.prototype.hasOwnProperty.call(order, b) ? order[b] : 99;
-  if (aOrder !== bOrder) return aOrder - bOrder;
-  return a.localeCompare(b);
-}
+  // Fallback when explicit master-total row is not present in data.
+  if (!summaryRow) {
+    const totals = rows.reduce(
+      (acc, row) => {
+        const packed = Number(String(getRowPacked(row) ?? "").trim());
+        const tray = Number(String(getRowTray(row) ?? "").trim());
+        const total = Number(String(getRowTotal(row) ?? "").trim());
+        if (Number.isFinite(packed)) acc.packed += packed;
+        if (Number.isFinite(tray)) acc.tray += tray;
+        if (Number.isFinite(total)) acc.total += total;
+        return acc;
+      },
+      { packed: 0, tray: 0, total: 0 }
+    );
+    summaryRow = {
+      product: masterName,
+      packed: totals.packed.toFixed(2),
+      tray: totals.tray.toFixed(2),
+      total: totals.total.toFixed(2)
+    };
+  }
 
-function buildProductCardHtml(item, index) {
-  const formatKeys = Object.keys(item.formats).sort(formatSort);
-  const masterText = item.masters.length ? item.masters.join(", ") : "-";
-  const groupText = item.groups.length ? item.groups.join(", ") : "-";
+  const bodyHtml = rows
+    .map((row) => {
+      const product = getRowProduct(row) || "-";
+      const isSummary = product && getRowMaster(row) && product.toLowerCase() === getRowMaster(row).toLowerCase();
+      if (isSummary) return "";
+      return `
+        <tr>
+          <td>${escapeHtml(product.toUpperCase())}</td>
+          <td class="num">${escapeHtml(formatNumberLike(getRowPacked(row)))}</td>
+          <td class="num">${escapeHtml(formatNumberLike(getRowTray(row)))}</td>
+          <td class="num">${escapeHtml(formatNumberLike(getRowTotal(row)))}</td>
+        </tr>
+      `;
+    })
+    .join("");
 
-  let html = `
-    <article class="product-box single-card">
-      <div class="product-screen-label">${escapeHtml(masterText)} | Section: ${escapeHtml(groupText)}</div>
-      <div class="product-head">
-        <div class="product-title">${escapeHtml(item.name)}</div>
-        <div class="product-head-right">
-          <div class="product-total">${item.totalQty.toFixed(2)}</div>
-        </div>
-      </div>
-      <table class="table">
+  return `
+    <article class="section-table-card single-card">
+      <table class="section-table">
         <thead>
           <tr>
-            <th>Qty</th>
-            <th>Sum</th>
-            <th>Count</th>
+            <th>${escapeHtml(sectionTitle.toUpperCase())}</th>
+            <th>PACKED</th>
+            <th>TRAY</th>
+            <th>TOTAL</th>
           </tr>
         </thead>
         <tbody>
-  `;
-
-  formatKeys.forEach((format) => {
-    html += `
-      <tr class="format-head-row">
-        <td colspan="3">${escapeHtml(format)}</td>
-      </tr>
-    `;
-
-    const qtyKeys = Object.keys(item.formats[format].rows).sort((a, b) => Number(a) - Number(b));
-    qtyKeys.forEach((qty) => {
-      const row = item.formats[format].rows[qty];
-      html += `
-        <tr>
-          <td>${Number(qty).toFixed(2)}</td>
-          <td>${row.sum.toFixed(2)}</td>
-          <td>${row.count}</td>
-        </tr>
-      `;
-    });
-
-    html += `
-      <tr class="format-row">
-        <td>${escapeHtml(format)}</td>
-        <td>${item.formats[format].total.toFixed(3)}</td>
-        <td></td>
-      </tr>
-    `;
-  });
-
-  html += `
+          <tr class="master-summary-row">
+            <td>${escapeHtml(String(summaryRow.product || masterName).toUpperCase())}</td>
+            <td class="num">${escapeHtml(formatNumberLike(summaryRow.packed))}</td>
+            <td class="num">${escapeHtml(formatNumberLike(summaryRow.tray))}</td>
+            <td class="num">${escapeHtml(formatNumberLike(summaryRow.total))}</td>
+          </tr>
+          ${bodyHtml}
         </tbody>
       </table>
     </article>
   `;
-  return html;
 }
 
-function renderSingleCard(options = {}) {
+function renderDataView(options = {}) {
   const { animate = false } = options;
-  if (!productsData.length) {
-    appEl.innerHTML = '<div class="empty-card single-card">No products found for this master.</div>';
-    if (productIndexEl) productIndexEl.textContent = "0 / 0";
-    if (prevBtnEl) prevBtnEl.disabled = true;
-    if (nextBtnEl) nextBtnEl.disabled = true;
+  updateHeader(rawData);
+
+  if (!rawData.length) {
+    appEl.innerHTML = '<div class="empty-card single-card">No active section for this TV.</div>';
     return;
   }
 
-  updateHeader(rawData);
-  const visibleItems = productsData.slice(0, 2);
-  const html = `
-    <div class="split-view ${visibleItems.length === 1 ? "single" : "double"}">
-      ${visibleItems.map((item, index) => buildProductCardHtml(item, index)).join("")}
-    </div>
-  `;
-
-  appEl.innerHTML = html;
+  appEl.innerHTML = buildSectionTableHtml(rawData);
   if (animate) {
     appEl.classList.add("is-refreshing");
     window.requestAnimationFrame(() => {
       appEl.classList.remove("is-refreshing");
     });
   }
-
-  if (productIndexEl) productIndexEl.textContent = `${visibleItems.length} / ${visibleItems.length}`;
-  if (prevBtnEl) prevBtnEl.disabled = productsData.length <= 1;
-  if (nextBtnEl) nextBtnEl.disabled = productsData.length <= 1;
-}
-
-function renderDataView(options = {}) {
-  const { animate = false } = options;
-  if (!rawData.length) {
-    masterHeaderEl.textContent = "Master: -";
-    sectionHeaderEl.textContent = "Section: -";
-    sectionListEl.innerHTML = "";
-    appEl.innerHTML = '<div class="empty-card single-card">No master data found.</div>';
-    if (productIndexEl) productIndexEl.textContent = "0 / 0";
-    if (prevBtnEl) prevBtnEl.disabled = true;
-    if (nextBtnEl) nextBtnEl.disabled = true;
-    return;
-  }
-
-  productsData = buildProductData(rawData);
-  renderSingleCard({ animate });
 }
 
 async function refreshRowsInBackground() {
   if (!activeTvId || isRefreshInFlight) return;
   isRefreshInFlight = true;
   try {
-    const rows = await fetchRowsForTvId(activeTvId);
-    if (!rows.length) return;
+    const rows = await fetchRowsForTvId(activeTvId, true);
     applyRows(rows, activeTvId, { animate: true });
   } catch (error) {
     // Ignore transient network errors and keep the current TV view visible.
@@ -414,24 +353,6 @@ async function refreshRowsInBackground() {
     isRefreshInFlight = false;
   }
 }
-
-if (prevBtnEl) {
-  prevBtnEl.addEventListener("click", () => {
-    // Manual previous/next is disabled in split view mode.
-  });
-}
-
-if (nextBtnEl) {
-  nextBtnEl.addEventListener("click", () => {
-    // Manual previous/next is disabled in split view mode.
-  });
-}
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-    event.preventDefault();
-  }
-});
 
 if (fullscreenToggleBtnEl) {
   fullscreenToggleBtnEl.addEventListener("click", () => {
@@ -443,6 +364,15 @@ if (fullscreenToggleBtnEl) {
 document.addEventListener("fullscreenchange", () => {
   updateFullscreenButtonUi();
 });
+
+async function loadForActiveTv(tvId) {
+  const allRows = await fetchRowsForTvId(tvId, false);
+  if (!allRows.length) {
+    return { hasTvRows: false, currentRows: [] };
+  }
+  const currentRows = allRows.filter((row) => isTrueLike(getRowValue(row, ["screen"])));
+  return { hasTvRows: true, currentRows };
+}
 
 async function init() {
   const savedTvId = normalizeTvId(localStorage.getItem(TV_LOGIN_KEY));
@@ -465,14 +395,14 @@ async function init() {
 
     appEl.innerHTML = '<div class="loading-card single-card">Loading...</div>';
     try {
-      const rows = await fetchRowsForTvId(enteredTvId);
-      const { matchCount } = applyRows(rows, enteredTvId, { forceRender: true });
-      if (!matchCount) {
+      const result = await loadForActiveTv(enteredTvId);
+      if (!result.hasTvRows) {
         setLoginError(`No data found for TV ID ${enteredTvId}.`);
         resetViewForLoggedOut();
         return;
       }
 
+      applyRows(result.currentRows, enteredTvId, { forceRender: true });
       setLoginError("");
       localStorage.setItem(TV_LOGIN_KEY, enteredTvId);
       hideLoginOverlay();
@@ -492,15 +422,15 @@ async function init() {
 
   try {
     if (activeTvId) {
-      const rows = await fetchRowsForTvId(activeTvId);
-      const { matchCount } = applyRows(rows, activeTvId, { forceRender: true });
-      if (!matchCount) {
+      const result = await loadForActiveTv(activeTvId);
+      if (!result.hasTvRows) {
         localStorage.removeItem(TV_LOGIN_KEY);
         activeTvId = "";
         resetViewForLoggedOut();
         setLoginError("Saved TV ID has no matching data. Please login again.");
         showLoginOverlay();
       } else {
+        applyRows(result.currentRows, activeTvId, { forceRender: true });
         startAutoRefresh();
       }
     }
