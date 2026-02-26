@@ -40,14 +40,14 @@ body {
   background: linear-gradient(145deg, #151b22, #11161e);
   border: 1px solid #232c37;
   border-radius: 22px;
-  padding:20px 20px;
+  padding:10px 20px;
   box-shadow: var(--shadow);
   text-align: center;
 }
 
 .hero-top-actions {
   position: absolute;
-  top: 14px;
+  top: 8px;
   right: 14px;
   display: flex;
   flex-direction: row;
@@ -167,6 +167,19 @@ body {
   align-items: center;
   justify-content: center;
   min-width: 42px;
+}
+
+.icon-theme-btn {
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+}
+
+.icon-theme-btn:hover {
+  background: #1b2430;
+  border-color: #2a3442;
 }
 
 .icon-fullscreen-btn:hover {
@@ -547,7 +560,7 @@ body.fullscreen-mode .sheet-tabs {
 .section-table th:not(:first-child),
 .section-table td:not(:first-child),
 .section-table td.num {
-  width: 12%;
+  width: 15%;
   text-align: right;
 }
 
@@ -567,4 +580,114 @@ body.fullscreen-mode .sheet-tabs {
     padding: 6px;
     font-size: clamp(0.9rem, 3vw, 1.2rem);
   }
+}
+
+html[data-theme="light"] {
+  --bg-1: #f4f8ff;
+  --bg-2: #e9f1ff;
+  --panel: #ffffff;
+  --ink: #0f223a;
+  --muted: #556981;
+  --line: #c9d8eb;
+  --accent: #1e6fd9;
+  --accent-soft: #e4efff;
+  --tab-bg: #f3f8ff;
+  --shadow: 0 8px 20px rgba(22, 56, 94, 0.14);
+}
+
+html[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 10% 0%, #d5e6ff 0%, transparent 35%),
+    radial-gradient(circle at 90% 90%, #dfe9ff 0%, transparent 30%),
+    linear-gradient(125deg, var(--bg-1), var(--bg-2));
+}
+
+html[data-theme="light"] .hero {
+  background: linear-gradient(145deg, #ffffff, #eef5ff);
+  border-color: #c9d8eb;
+}
+
+html[data-theme="light"] .tv-id-badge {
+  background: #f0f6ff;
+  color: #204b83;
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .hero-section {
+  color: #11365f;
+}
+
+html[data-theme="light"] .section-pill {
+  background: #edf4ff;
+  color: #1f4f86;
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .nav-btn {
+  background: #f4f8ff;
+  color: #123a67;
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .icon-theme-btn:hover,
+html[data-theme="light"] .icon-fullscreen-btn:hover {
+  background: #e7f0ff;
+  border-color: #a9c4e4;
+}
+
+html[data-theme="light"] .logout-btn {
+  background: #fff2f2;
+  color: #b33f3f;
+  border-color: #efc5c5;
+}
+
+html[data-theme="light"] .logout-btn:hover {
+  background: #ffe9e9;
+}
+
+html[data-theme="light"] .loading-card,
+html[data-theme="light"] .empty-card {
+  border-color: #c9d8eb;
+}
+
+html[data-theme="light"] .section-table-card {
+  background: #ffffff;
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .section-table {
+  background: #ffffff;
+  color: #0f223a;
+}
+
+html[data-theme="light"] .section-table th,
+html[data-theme="light"] .section-table td {
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .section-table thead th {
+  background: #eaf3ff;
+  color: #133a67;
+}
+
+html[data-theme="light"] .section-table tbody tr.master-summary-row td {
+  background: #f0f6ff;
+}
+
+html[data-theme="light"] .login-overlay {
+  background: rgba(231, 239, 252, 0.9);
+}
+
+html[data-theme="light"] .login-card {
+  border-color: #c9d8eb;
+}
+
+html[data-theme="light"] .login-card label {
+  color: #21466f;
+}
+
+html[data-theme="light"] .login-card input {
+  background: #f8fbff;
+  color: #0f223a;
+  border-color: #bfd3ec;
 }

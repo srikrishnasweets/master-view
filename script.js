@@ -1,6 +1,9 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbwaF9TqH6RS2X0oX-aEua8XK1wFLL-pymmmAOsaEHHz1VHeFtMY6mJIDPo1fNDCa6-C/exec";
 const TV_LOGIN_KEY = "tvLoginId";
+const THEME_KEY = "uiTheme";
+const DEFAULT_THEME = "light";
 const AUTO_REFRESH_MS = 5000;
+const MAX_ROWS_PER_PANEL = 13;
 
 let rawData = [];
 let activeTvId = "";
@@ -13,12 +16,54 @@ const masterHeaderEl = document.getElementById("masterHeader");
 const sectionHeaderEl = document.getElementById("sectionHeader");
 const sectionListEl = document.getElementById("sectionList");
 const logoutBtnEl = document.getElementById("logoutBtn");
+const themeToggleBtnEl = document.getElementById("themeToggleBtn");
 const fullscreenToggleBtnEl = document.getElementById("fullscreenToggleBtn");
 const tvIdBadgeEl = document.getElementById("tvIdBadge");
 const tvLoginOverlayEl = document.getElementById("tvLoginOverlay");
 const tvLoginFormEl = document.getElementById("tvLoginForm");
 const tvIdInputEl = document.getElementById("tvIdInput");
 const tvLoginErrorEl = document.getElementById("tvLoginError");
+
+function getCurrentTheme() {
+  return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+}
+
+function updateThemeButtonUi() {
+  if (!themeToggleBtnEl) return;
+  const iconEl = themeToggleBtnEl.querySelector("i");
+  const currentTheme = getCurrentTheme();
+  const nextTheme = currentTheme === "dark" ? "light" : "dark";
+
+  themeToggleBtnEl.setAttribute("aria-label", `Switch to ${nextTheme} theme`);
+  themeToggleBtnEl.setAttribute("title", `Switch to ${nextTheme} theme`);
+  if (iconEl) {
+    iconEl.className = currentTheme === "dark" ? "bi bi-moon-stars-fill" : "bi bi-sun-fill";
+  }
+}
+
+function applyTheme(theme, options = {}) {
+  const { persist = false } = options;
+  const normalizedTheme = theme === "light" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", normalizedTheme);
+  updateThemeButtonUi();
+
+  if (persist) {
+    localStorage.setItem(THEME_KEY, normalizedTheme);
+  }
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  const initialTheme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : DEFAULT_THEME;
+  applyTheme(initialTheme);
+
+  if (themeToggleBtnEl) {
+    themeToggleBtnEl.addEventListener("click", () => {
+      const nextTheme = getCurrentTheme() === "dark" ? "light" : "dark";
+      applyTheme(nextTheme, { persist: true });
+    });
+  }
+}
 
 function updateFullscreenButtonUi() {
   if (!fullscreenToggleBtnEl) return;
@@ -288,12 +333,19 @@ function buildSectionTableHtml(rows) {
     return !(product && master && product.toLowerCase() === master.toLowerCase());
   });
 
-  const chunkSize = 13;
   const chunks = [];
-  for (let i = 0; i < bodyRows.length; i += chunkSize) {
-    chunks.push(bodyRows.slice(i, i + chunkSize));
+  const firstChunkSize = Math.max(1, MAX_ROWS_PER_PANEL - 1); // first panel includes summary row
+  if (bodyRows.length <= firstChunkSize) {
+    chunks.push(bodyRows);
+  } else {
+    chunks.push(bodyRows.slice(0, firstChunkSize));
+    for (let i = firstChunkSize; i < bodyRows.length; i += MAX_ROWS_PER_PANEL) {
+      chunks.push(bodyRows.slice(i, i + MAX_ROWS_PER_PANEL));
+    }
   }
-  if (!chunks.length) chunks.push([]);
+  if (!chunks.length) {
+    chunks.push([]);
+  }
 
   const renderBodyRows = (chunk) =>
     chunk
@@ -464,4 +516,5 @@ async function init() {
   }
 }
 
+initTheme();
 init();
