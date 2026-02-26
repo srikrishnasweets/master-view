@@ -282,45 +282,70 @@ function buildSectionTableHtml(rows) {
     };
   }
 
-  const bodyHtml = rows
-    .map((row) => {
-      const product = getRowProduct(row) || "-";
-      const isSummary = product && getRowMaster(row) && product.toLowerCase() === getRowMaster(row).toLowerCase();
-      if (isSummary) return "";
+  const bodyRows = rows.filter((row) => {
+    const product = getRowProduct(row);
+    const master = getRowMaster(row);
+    return !(product && master && product.toLowerCase() === master.toLowerCase());
+  });
+
+  const chunkSize = 13;
+  const chunks = [];
+  for (let i = 0; i < bodyRows.length; i += chunkSize) {
+    chunks.push(bodyRows.slice(i, i + chunkSize));
+  }
+  if (!chunks.length) chunks.push([]);
+
+  const renderBodyRows = (chunk) =>
+    chunk
+      .map((row) => {
+        const product = getRowProduct(row) || "-";
+        return `
+          <tr>
+            <td>${escapeHtml(product.toUpperCase())}</td>
+            <td class="num">${escapeHtml(formatNumberLike(getRowPacked(row)))}</td>
+            <td class="num">${escapeHtml(formatNumberLike(getRowTray(row)))}</td>
+            <td class="num">${escapeHtml(formatNumberLike(getRowTotal(row)))}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+  const tablesHtml = chunks
+    .map((chunk, index) => {
+      const summaryHtml =
+        index === 0
+          ? `
+            <tr class="master-summary-row">
+              <td>${escapeHtml(String(summaryRow.product || masterName).toUpperCase())}</td>
+              <td class="num">${escapeHtml(formatNumberLike(summaryRow.packed))}</td>
+              <td class="num">${escapeHtml(formatNumberLike(summaryRow.tray))}</td>
+              <td class="num">${escapeHtml(formatNumberLike(summaryRow.total))}</td>
+            </tr>
+          `
+          : "";
       return `
-        <tr>
-          <td>${escapeHtml(product.toUpperCase())}</td>
-          <td class="num">${escapeHtml(formatNumberLike(getRowPacked(row)))}</td>
-          <td class="num">${escapeHtml(formatNumberLike(getRowTray(row)))}</td>
-          <td class="num">${escapeHtml(formatNumberLike(getRowTotal(row)))}</td>
-        </tr>
+        <article class="section-table-card single-card">
+          <table class="section-table">
+            <thead>
+              <tr>
+                <th>${escapeHtml(sectionTitle.toUpperCase())}</th>
+                <th>PACKED</th>
+                <th>TRAY</th>
+                <th>TOTAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${summaryHtml}
+              ${renderBodyRows(chunk)}
+            </tbody>
+          </table>
+        </article>
       `;
     })
     .join("");
 
-  return `
-    <article class="section-table-card single-card">
-      <table class="section-table">
-        <thead>
-          <tr>
-            <th>${escapeHtml(sectionTitle.toUpperCase())}</th>
-            <th>PACKED</th>
-            <th>TRAY</th>
-            <th>TOTAL</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="master-summary-row">
-            <td>${escapeHtml(String(summaryRow.product || masterName).toUpperCase())}</td>
-            <td class="num">${escapeHtml(formatNumberLike(summaryRow.packed))}</td>
-            <td class="num">${escapeHtml(formatNumberLike(summaryRow.tray))}</td>
-            <td class="num">${escapeHtml(formatNumberLike(summaryRow.total))}</td>
-          </tr>
-          ${bodyHtml}
-        </tbody>
-      </table>
-    </article>
-  `;
+  const wrapperClass = chunks.length > 1 ? "split-view" : "split-view single";
+  return `<div class="${wrapperClass}">${tablesHtml}</div>`;
 }
 
 function renderDataView(options = {}) {

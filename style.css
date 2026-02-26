@@ -1,14 +1,14 @@
 :root {
-  --bg-1: #f4f8ff;
-  --bg-2: #edf4ff;
-  --panel: #ffffff;
-  --ink: #112031;
-  --muted: #4a5a6a;
-  --line: #dbe4ec;
-  --accent: #2a6fd6;
-  --accent-soft: #eaf2ff;
-  --tab-bg: #f4f7fa;
-  --shadow: 0 14px 28px rgba(17, 32, 49, 0.08);
+  --bg-1: #0b0d10;
+  --bg-2: #11141a;
+  --panel: #12171f;
+  --ink: #f5f7fa;
+  --muted: #c6d0db;
+  --line: #262d38;
+  --accent: #5aa9ff;
+  --accent-soft: #1a2633;
+  --tab-bg: #151b22;
+  --shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -23,8 +23,8 @@ body {
   color: var(--ink);
   overflow: hidden;
   background:
-    radial-gradient(circle at 10% 0%, #d9ecff 0%, transparent 35%),
-    radial-gradient(circle at 90% 90%, #dbe9ff 0%, transparent 30%),
+    radial-gradient(circle at 10% 0%, #1d2a3a 0%, transparent 35%),
+    radial-gradient(circle at 90% 90%, #1b2230 0%, transparent 30%),
     linear-gradient(125deg, var(--bg-1), var(--bg-2));
 }
 
@@ -37,8 +37,8 @@ body {
 
 .hero {
   position: relative;
-  background: linear-gradient(145deg, #fcfeff, #f5f9ff);
-  border: 1px solid #d6e4fb;
+  background: linear-gradient(145deg, #151b22, #11161e);
+  border: 1px solid #232c37;
   border-radius: 22px;
   padding:20px 20px;
   box-shadow: var(--shadow);
@@ -59,9 +59,9 @@ body {
 }
 
 .tv-id-badge {
-  border: 1px solid #c9dbf3;
-  background: #eef5ff;
-  color: #2e5078;
+  border: 1px solid #2a3442;
+  background: #111821;
+  color: #d8e6ff;
   border-radius: 999px;
   padding: 6px 12px;
   font-size: clamp(0.85rem, 0.75vw, 1.05rem);
@@ -86,7 +86,7 @@ body {
 
 .hero-section {
   margin: 0;
-  color: #2c3f56;
+  color: #e6eef8;
   font-size: clamp(1.5rem, 2.2vw, 3rem);
   font-weight: 700;
   line-height: 1.2;
@@ -100,9 +100,9 @@ body {
 }
 
 .section-pill {
-  background: #e9f1ff;
-  color: #264a7a;
-  border: 1px solid #c8dbfb;
+  background: #1b2430;
+  color: #dbe9ff;
+  border: 1px solid #2a3442;
   border-radius: 999px;
   padding: 6px 14px;
   font-size: clamp(0.9rem, 0.75vw, 1.2rem);
@@ -119,9 +119,9 @@ body {
 }
 
 .nav-btn {
-  border: 1px solid #c7d7ea;
-  background: #f4f8ff;
-  color: #35567d;
+  border: 1px solid #2a3442;
+  background: #151b22;
+  color: #e6eef8;
   border-radius: 12px;
   padding: 10px 20px;
   cursor: pointer;
@@ -137,20 +137,20 @@ body {
 
 .product-index {
   font-size: clamp(1rem, 0.9vw, 1.4rem);
-  color: #4a5a6a;
+  color: #b5c1cf;
   font-weight: 700;
   min-width: 120px;
   text-align: center;
 }
 
 .logout-btn {
-  background: #fff3f3;
-  border-color: #f4c9c9;
-  color: #a13e3e;
+  background: #2a1717;
+  border-color: #4b2222;
+  color: #ffb3b3;
 }
 
 .logout-btn:hover {
-  background: #ffeaea;
+  background: #3a1d1d;
 }
 
 .icon-logout-btn {
@@ -170,8 +170,8 @@ body {
 }
 
 .icon-fullscreen-btn:hover {
-  background: #edf3f9;
-  border-color: #b9cbde;
+  background: #1b2430;
+  border-color: #2a3442;
 }
 
 .single-wrap {
@@ -198,7 +198,7 @@ body {
 
 .product-box {
   background: var(--panel);
-  border: 1px solid #d6e1ea;
+  border: 1px solid #262d38;
   border-radius: 18px;
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -216,13 +216,13 @@ body {
   gap: 10px;
   align-items: center;
   padding: clamp(14px, 1vw, 24px);
-  background: #f7fbff;
+  background: #151b22;
   border-bottom: 1px solid var(--line);
 }
 
 .product-screen-label {
   padding: 10px 14px 0;
-  color: #2e5078;
+  color: #cfe2ff;
   font-size: clamp(0.9rem, 0.85vw, 1.1rem);
   font-weight: 800;
   text-transform: uppercase;
@@ -231,7 +231,7 @@ body {
 
 .product-meta-line {
   padding: 4px 14px 0;
-  color: #46617a;
+  color: #b5c1cf;
   font-size: clamp(0.8rem, 0.75vw, 1rem);
   font-weight: 700;
 }
@@ -254,9 +254,9 @@ body {
 }
 
 .fullscreen-btn {
-  border: 1px solid #c7d7ea;
-  background: #f4f8ff;
-  color: #35567d;
+  border: 1px solid #2a3442;
+  background: #151b22;
+  color: #e6eef8;
   border-radius: 10px;
   padding: 8px 10px;
   cursor: pointer;
@@ -267,8 +267,8 @@ body {
 }
 
 .fullscreen-btn:hover {
-  background: #edf3f9;
-  border-color: #b9cbde;
+  background: #1b2430;
+  border-color: #2a3442;
 }
 
 .product-box:fullscreen {
@@ -285,18 +285,18 @@ body {
 
 .table th,
 .table td {
-  border-bottom: 1px solid #e8edf2;
+  border-bottom: 1px solid #262d38;
   padding: clamp(8px, 0.85vw, 16px) clamp(10px, 0.9vw, 18px);
   font-size: clamp(1.15rem, 1.2vw, 1.8rem);
   text-align: left;
 }
 
 .table th {
-  color: #415365;
+  color: #cbd7e6;
   font-size: clamp(1rem, 1vw, 1.5rem);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: #f9fcff;
+  background: #151b22;
 }
 
 .table td:nth-child(2),
@@ -312,8 +312,8 @@ body {
 }
 
 .format-head-row td {
-  background: #f6f9ff;
-  color: #3c5680;
+  background: #1b2430;
+  color: #cfe2ff;
   font-size: clamp(1rem, 1vw, 1.4rem);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -323,7 +323,7 @@ body {
 .loading-card,
 .empty-card {
   background: var(--panel);
-  border: 1px solid #d6e1ea;
+  border: 1px solid #262d38;
   border-radius: 16px;
   box-shadow: var(--shadow);
   padding: 28px;
@@ -344,8 +344,8 @@ body {
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border-top: 1px solid #cbdae7;
-  background: rgba(247, 252, 255, 0.94);
+  border-top: 1px solid #262d38;
+  background: rgba(15, 19, 25, 0.94);
   backdrop-filter: blur(6px);
 }
 
@@ -354,7 +354,7 @@ body {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  color: #537186;
+  color: #b8c6d6;
   white-space: nowrap;
 }
 
@@ -372,14 +372,14 @@ body {
 }
 
 .sheet-tabs::-webkit-scrollbar-thumb {
-  background: #b8cce0;
+  background: #2a3442;
   border-radius: 999px;
 }
 
 .sheet-tab {
-  border: 1px solid #cfdbe7;
+  border: 1px solid #2a3442;
   background: var(--tab-bg);
-  color: #3e556a;
+  color: #cbd7e6;
   font-weight: 700;
   font-size: clamp(1rem, 0.95vw, 1.4rem);
   border-radius: 10px 10px 0 0;
@@ -391,15 +391,15 @@ body {
 }
 
 .sheet-tab:hover {
-  border-color: #b9cbde;
-  background: #edf3f9;
+  border-color: #3a4554;
+  background: #1b2430;
 }
 
 .sheet-tab.active {
-  background: #ffffff;
-  color: #2a6fd6;
-  border-color: #a8c6f5;
-  box-shadow: inset 0 -2px 0 #2a6fd6;
+  background: #0f141b;
+  color: #6fb4ff;
+  border-color: #31507c;
+  box-shadow: inset 0 -2px 0 #6fb4ff;
 }
 
 body.fullscreen-mode .section-list,
@@ -412,7 +412,7 @@ body.fullscreen-mode .sheet-tabs {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: #ffffff;
+  background: #0b0d10;
   display: grid;
   place-items: center;
   padding: 16px;
@@ -425,7 +425,7 @@ body.fullscreen-mode .sheet-tabs {
 .login-card {
   width: min(420px, 100%);
   background: var(--panel);
-  border: 1px solid #d6e1ea;
+  border: 1px solid #262d38;
   border-radius: 18px;
   box-shadow: var(--shadow);
   padding: 22px;
@@ -440,21 +440,23 @@ body.fullscreen-mode .sheet-tabs {
 
 .login-card label {
   font-size: clamp(0.95rem, 0.95vw, 1.15rem);
-  color: #34495f;
+  color: #cbd7e6;
   font-weight: 600;
 }
 
 .login-card input {
-  border: 1px solid #c7d7ea;
+  border: 1px solid #2a3442;
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 1rem;
   font-family: inherit;
+  background: #0f141b;
+  color: var(--ink);
 }
 
 .login-error {
   margin: 0;
-  color: #a13e3e;
+  color: #ffb3b3;
   font-size: 0.95rem;
   font-weight: 600;
 }
@@ -506,8 +508,8 @@ body.fullscreen-mode .sheet-tabs {
   }
 }
 .section-table-card {
-  background: #f2f2f2;
-  border: 1px solid #1f1f1f;
+  background: #0f141b;
+  border: 1px solid #2a3442;
   border-radius: 0;
   overflow: hidden;
   box-shadow: none;
@@ -517,19 +519,20 @@ body.fullscreen-mode .sheet-tabs {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  background: #f2f2f2;
+  background: #0f141b;
+  color: var(--ink);
 }
 
 .section-table th,
 .section-table td {
-  border: 1px solid #1f1f1f;
+  border: 1px solid #2a3442;
   padding: 6px 10px;
   font-size: clamp(1rem, 1.15vw, 1.8rem);
   line-height: 1.15;
 }
 
 .section-table thead th {
-  background: #4f81bd;
+  background: #1b2430;
   color: #ffffff;
   font-weight: 800;
   text-transform: uppercase;
@@ -551,6 +554,7 @@ body.fullscreen-mode .sheet-tabs {
 .section-table tbody tr.summary-row td,
 .section-table tbody tr.master-summary-row td {
   font-weight: 800;
+  background: #151f2a;
 }
 
 #app.is-refreshing .section-table-card {
