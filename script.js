@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwaF9TqH6RS2X0oX-aEua8XK1wFLL-pymmmAOsaEHHz1VHeFtMY6mJIDPo1fNDCa6-C/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxCEG2_g3LRZx0b1F3ubXYZ3c56GLsVdx1mpXthzc1IzNdq25JnzvZG5Cs-sLHwKwmR8g/exec";
 const TV_LOGIN_KEY = "tvLoginId";
 const THEME_KEY = "uiTheme";
 const DEFAULT_THEME = "light";
@@ -447,7 +447,10 @@ async function loadForActiveTv(tvId) {
   if (!allRows.length) {
     return { hasTvRows: false, currentRows: [] };
   }
-  const currentRows = allRows.filter((row) => isTrueLike(getRowValue(row, ["screen"])));
+  const currentOnlyRows = await fetchRowsForTvId(tvId, true);
+  const currentRows = currentOnlyRows.length
+    ? currentOnlyRows
+    : allRows.filter((row) => isTrueLike(getRowValue(row, ["screen"])));
   return { hasTvRows: true, currentRows };
 }
 
