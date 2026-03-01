@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbxw4jCVmR0j6n46VqmAE0SLPLZtP1qWzeqNegwFWmL5SdIvNbYrwRQg1v3rrodBJ8c16g/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxpudYsX6cBGA26wYkh05RlvlqVV96AI0-ce3or2SBnHSu_OwSeSLKme6pV6vbSzQ/exec";
 const TV_LOGIN_KEY = "tvLoginId";
 const THEME_KEY = "uiTheme";
 const DEFAULT_THEME = "light";
@@ -153,6 +153,19 @@ function getRowTray(row) {
 
 function getRowTotal(row) {
   return getRowValue(row, ["total"]);
+}
+
+function getRowTime(row) {
+  const raw = getRowValue(row, ["time", "timestamp"]);
+  if (!raw) return "";
+
+  const date = new Date(raw);
+  if (isNaN(date)) return String(raw).trim();
+
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
 }
 
 function getRowStatus(row) {
@@ -405,6 +418,7 @@ function buildSectionTableHtml(rows) {
             <td class="num ${packedCellClass}">${escapeHtml(formatNumberLike(getRowPacked(row)))}</td>
             <td class="num ${trayCellClass}">${escapeHtml(formatNumberLike(getRowTray(row)))}</td>
             <td class="num">${escapeHtml(formatNumberLike(getRowTotal(row)))}</td>
+            <td>${escapeHtml(getRowTime(row) || "-")}</td>
           </tr>
         `;
       })
@@ -426,6 +440,7 @@ function buildSectionTableHtml(rows) {
               <td class="num">${escapeHtml(formatNumberLike(summaryRow.packed))}</td>
               <td class="num">${escapeHtml(formatNumberLike(summaryRow.tray))}</td>
               <td class="num">${escapeHtml(formatNumberLike(summaryRow.total))}</td>
+              <td>-</td>
             </tr>
           `
           : "";
@@ -443,6 +458,7 @@ function buildSectionTableHtml(rows) {
               <td class="num com-bal">${escapeHtml(
                 `${formatNumberLike(completedSums.total)}-${formatNumberLike(balanceTotal)}`
               )}</td>
+              <td>-</td>
             </tr>
           `
           : "";
@@ -455,6 +471,7 @@ function buildSectionTableHtml(rows) {
                 <th>PACKED</th>
                 <th>TRAY</th>
                 <th>TOTAL</th>
+                <th>TIME</th>
               </tr>
             </thead>
             <tbody>
