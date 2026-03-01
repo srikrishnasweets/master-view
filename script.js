@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbxCEG2_g3LRZx0b1F3ubXYZ3c56GLsVdx1mpXthzc1IzNdq25JnzvZG5Cs-sLHwKwmR8g/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxpudYsX6cBGA26wYkh05RlvlqVV96AI0-ce3or2SBnHSu_OwSeSLKme6pV6vbSzQ/exec";
 const TV_LOGIN_KEY = "tvLoginId";
 const THEME_KEY = "uiTheme";
 const DEFAULT_THEME = "light";
@@ -153,6 +153,35 @@ function getRowTray(row) {
 
 function getRowTotal(row) {
   return getRowValue(row, ["total"]);
+}
+
+function getRowStatus(row) {
+  return String(getRowValue(row, ["status"])).trim();
+}
+
+function getRowPackedStatus(row) {
+  return String(getRowValue(row, ["packed status", "packed_status", "packedstatus"])).trim();
+}
+
+function getRowTrayStatus(row) {
+  return String(getRowValue(row, ["tray status", "tray_status", "traystatus"])).trim();
+}
+
+function isCompletedStatus(value) {
+  const v = String(value ?? "").trim().toLowerCase();
+  return v === "done" || v === "complete" || v === "completed" || v === "packed" || v === "tray";
+}
+
+function isPackedComplete(row) {
+  const packedStatus = getRowPackedStatus(row);
+  if (packedStatus) return isCompletedStatus(packedStatus);
+  return isCompletedStatus(getRowStatus(row));
+}
+
+function isTrayComplete(row) {
+  const trayStatus = getRowTrayStatus(row);
+  if (trayStatus) return isCompletedStatus(trayStatus);
+  return isCompletedStatus(getRowStatus(row));
 }
 
 function showLoginOverlay() {
@@ -332,6 +361,20 @@ function buildSectionTableHtml(rows) {
     const master = getRowMaster(row);
     return !(product && master && product.toLowerCase() === master.toLowerCase());
   });
+  const completedSums = bodyRows.reduce(
+    (acc, row) => {
+      const packedComplete = isPackedComplete(row);
+      const trayComplete = isTrayComplete(row);
+      const packed = Number(String(getRowPacked(row) ?? "").trim());
+      const tray = Number(String(getRowTray(row) ?? "").trim());
+      const total = Number(String(getRowTotal(row) ?? "").trim());
+      if (packedComplete && Number.isFinite(packed)) acc.packed += packed;
+      if (trayComplete && Number.isFinite(tray)) acc.tray += tray;
+      if ((packedComplete || trayComplete) && Number.isFinite(total)) acc.total += total;
+      return acc;
+    },
+    { packed: 0, tray: 0, total: 0 }
+  );
 
   const chunks = [];
   const firstChunkSize = Math.max(1, MAX_ROWS_PER_PANEL - 1); // first panel includes summary row
@@ -351,11 +394,16 @@ function buildSectionTableHtml(rows) {
     chunk
       .map((row) => {
         const product = getRowProduct(row) || "-";
+        const packedComplete = isPackedComplete(row);
+        const trayComplete = isTrayComplete(row);
+        const completedRowClass = packedComplete && trayComplete ? "completed-product-row" : "";
+        const packedCellClass = packedComplete ? "completed-cell" : "";
+        const trayCellClass = trayComplete ? "completed-cell" : "";
         return `
-          <tr>
+          <tr class="${completedRowClass}">
             <td>${escapeHtml(product.toUpperCase())}</td>
-            <td class="num">${escapeHtml(formatNumberLike(getRowPacked(row)))}</td>
-            <td class="num">${escapeHtml(formatNumberLike(getRowTray(row)))}</td>
+            <td class="num ${packedCellClass}">${escapeHtml(formatNumberLike(getRowPacked(row)))}</td>
+            <td class="num ${trayCellClass}">${escapeHtml(formatNumberLike(getRowTray(row)))}</td>
             <td class="num">${escapeHtml(formatNumberLike(getRowTotal(row)))}</td>
           </tr>
         `;
@@ -364,6 +412,12 @@ function buildSectionTableHtml(rows) {
 
   const tablesHtml = chunks
     .map((chunk, index) => {
+      const summaryPackedNum = Number(String(summaryRow.packed ?? "").trim());
+      const summaryTrayNum = Number(String(summaryRow.tray ?? "").trim());
+      const summaryTotalNum = Number(String(summaryRow.total ?? "").trim());
+      const balancePacked = Number.isFinite(summaryPackedNum) ? summaryPackedNum - completedSums.packed : null;
+      const balanceTray = Number.isFinite(summaryTrayNum) ? summaryTrayNum - completedSums.tray : null;
+      const balanceTotal = Number.isFinite(summaryTotalNum) ? summaryTotalNum - completedSums.total : null;
       const summaryHtml =
         index === 0
           ? `
@@ -372,6 +426,23 @@ function buildSectionTableHtml(rows) {
               <td class="num">${escapeHtml(formatNumberLike(summaryRow.packed))}</td>
               <td class="num">${escapeHtml(formatNumberLike(summaryRow.tray))}</td>
               <td class="num">${escapeHtml(formatNumberLike(summaryRow.total))}</td>
+            </tr>
+          `
+          : "";
+      const completedSummaryHtml =
+        index === chunks.length - 1
+          ? `
+            <tr class="completed-summary-row">
+              <td>COMPLETED-BALANCE</td>
+              <td class="num com-bal">${escapeHtml(
+                `${formatNumberLike(completedSums.packed)}-${formatNumberLike(balancePacked)}`
+              )}</td>
+              <td class="num com-bal">${escapeHtml(
+                `${formatNumberLike(completedSums.tray)}-${formatNumberLike(balanceTray)}`
+              )}</td>
+              <td class="num com-bal">${escapeHtml(
+                `${formatNumberLike(completedSums.total)}-${formatNumberLike(balanceTotal)}`
+              )}</td>
             </tr>
           `
           : "";
@@ -389,6 +460,7 @@ function buildSectionTableHtml(rows) {
             <tbody>
               ${summaryHtml}
               ${renderBodyRows(chunk)}
+              ${completedSummaryHtml}
             </tbody>
           </table>
         </article>

@@ -560,14 +560,31 @@ body.fullscreen-mode .sheet-tabs {
 .section-table th:not(:first-child),
 .section-table td:not(:first-child),
 .section-table td.num {
-  width: 15%;
+  width: 20%;
   text-align: right;
+}
+.com-bal{
+  font-size: 15px !important;
+  padding: 2px !important;
 }
 
 .section-table tbody tr.summary-row td,
 .section-table tbody tr.master-summary-row td {
   font-weight: 800;
   background: #151f2a;
+}
+
+.section-table tbody tr.completed-product-row td {
+  background: #143023;
+}
+
+.section-table tbody td.completed-cell {
+  background: #143023;
+}
+
+.section-table tbody tr.completed-summary-row td {
+  font-weight: 800;
+  background: #1a3d2c;
 }
 
 #app.is-refreshing .section-table-card {
@@ -672,6 +689,18 @@ html[data-theme="light"] .section-table thead th {
 
 html[data-theme="light"] .section-table tbody tr.master-summary-row td {
   background: #f0f6ff;
+}
+
+html[data-theme="light"] .section-table tbody tr.completed-product-row td {
+  background: #dff7e8;
+}
+
+html[data-theme="light"] .section-table tbody td.completed-cell {
+  background: #dff7e8;
+}
+
+html[data-theme="light"] .section-table tbody tr.completed-summary-row td {
+  background: #cfeeda;
 }
 
 html[data-theme="light"] .login-overlay {
