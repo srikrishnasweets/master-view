@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwhws_DIlyHwglmCKudQy21uKsnDPrFOUA8x7JATHoZeH92s8CtdRxZyi5njjS5wtuzeQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby0t1hNhPtflVTcqay2cooBSRawRDt6mgWPyMYisfS8TmqUo47U6nlDhVXhGlJ6g092HA/exec";
 const TV_LOGIN_KEY = "tvLoginId";
 const THEME_KEY = "uiTheme";
 const DEFAULT_THEME = "light";
