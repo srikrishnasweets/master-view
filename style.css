@@ -575,7 +575,8 @@ body.fullscreen-mode .sheet-tabs {
 }
 
 .section-table tbody tr.completed-product-row td {
-  background: #143023;
+  background: #28A745;
+  color: white;
 }
 
 .section-table tbody td.completed-cell {
@@ -692,11 +693,13 @@ html[data-theme="light"] .section-table tbody tr.master-summary-row td {
 }
 
 html[data-theme="light"] .section-table tbody tr.completed-product-row td {
-  background: #dff7e8;
+  background: #28A745;
+  color: white;
 }
 
 html[data-theme="light"] .section-table tbody td.completed-cell {
-  background: #dff7e8;
+  background: #28A745;
+  color: white;
 }
 
 html[data-theme="light"] .section-table tbody tr.completed-summary-row td {
