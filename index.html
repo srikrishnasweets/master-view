@@ -9,7 +9,734 @@
   <link rel="shortcut icon" href="Asset/logo.png" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+  --bg-1: #0b0d10;
+  --bg-2: #11141a;
+  --panel: #12171f;
+  --ink: #f5f7fa;
+  --muted: #c6d0db;
+  --line: #262d38;
+  --accent: #5aa9ff;
+  --accent-soft: #1a2633;
+  --tab-bg: #151b22;
+  --shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+  font-size: clamp(16px, 0.8vw + 10px, 32px);
+  color: var(--ink);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 10% 0%, #1d2a3a 0%, transparent 35%),
+    radial-gradient(circle at 90% 90%, #1b2230 0%, transparent 30%),
+    linear-gradient(125deg, var(--bg-1), var(--bg-2));
+}
+
+.page {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 12px 10px;
+}
+
+.hero {
+  position: relative;
+  background: linear-gradient(145deg, #151b22, #11161e);
+  border: 1px solid #232c37;
+  border-radius: 22px;
+  padding:10px 20px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.hero-top-actions {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  z-index: 2;
+}
+
+.tv-id-badge {
+  border: 1px solid #2a3442;
+  background: #111821;
+  color: #d8e6ff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: clamp(0.85rem, 0.75vw, 1.05rem);
+  font-weight: 800;
+}
+
+.hero-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 1vw, 28px);
+  flex-wrap: wrap;
+}
+
+.hero-master {
+  margin: 0;
+  color: var(--accent);
+  font-size: clamp(1.5rem, 2.2vw, 3rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.hero-section {
+  margin: 0;
+  color: #e6eef8;
+  font-size: clamp(1.5rem, 2.2vw, 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.section-list {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.section-pill {
+  background: #1b2430;
+  color: #dbe9ff;
+  border: 1px solid #2a3442;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: clamp(0.9rem, 0.75vw, 1.2rem);
+  font-weight: 700;
+}
+
+.hero-controls {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  border: 1px solid #2a3442;
+  background: #151b22;
+  color: #e6eef8;
+  border-radius: 12px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: clamp(1rem, 0.9vw, 1.4rem);
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.product-index {
+  font-size: clamp(1rem, 0.9vw, 1.4rem);
+  color: #b5c1cf;
+  font-weight: 700;
+  min-width: 120px;
+  text-align: center;
+}
+
+.logout-btn {
+  background: #2a1717;
+  border-color: #4b2222;
+  color: #ffb3b3;
+}
+
+.logout-btn:hover {
+  background: #3a1d1d;
+}
+
+.icon-logout-btn {
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+}
+
+.icon-fullscreen-btn {
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+}
+
+.icon-theme-btn {
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+}
+
+.icon-theme-btn:hover {
+  background: #1b2430;
+  border-color: #2a3442;
+}
+
+.icon-fullscreen-btn:hover {
+  background: #1b2430;
+  border-color: #2a3442;
+}
+
+.single-wrap {
+  flex: 1;
+  min-height: 0;
+  margin-top: 12px;
+  overflow: auto;
+}
+
+.split-view {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.split-view.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.single-card {
+  width: 100%;
+  max-width: none;
+}
+
+.product-box {
+  background: var(--panel);
+  border: 1px solid #262d38;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+#app.is-refreshing .product-box {
+  opacity: 0.68;
+  transform: translateY(2px);
+}
+
+.product-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: clamp(14px, 1vw, 24px);
+  background: #151b22;
+  border-bottom: 1px solid var(--line);
+}
+
+.product-screen-label {
+  padding: 10px 14px 0;
+  color: #cfe2ff;
+  font-size: clamp(0.9rem, 0.85vw, 1.1rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.product-meta-line {
+  padding: 4px 14px 0;
+  color: #b5c1cf;
+  font-size: clamp(0.8rem, 0.75vw, 1rem);
+  font-weight: 700;
+}
+
+.product-title {
+  font-size: clamp(1.3rem, 1.6vw, 2.2rem);
+  font-weight: 800;
+}
+
+.product-total {
+  font-size: clamp(1.5rem, 1.9vw, 2.6rem);
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.product-head-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fullscreen-btn {
+  border: 1px solid #2a3442;
+  background: #151b22;
+  color: #e6eef8;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1rem, 1vw, 1.4rem);
+}
+
+.fullscreen-btn:hover {
+  background: #1b2430;
+  border-color: #2a3442;
+}
+
+.product-box:fullscreen {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid #262d38;
+  padding: clamp(8px, 0.85vw, 16px) clamp(10px, 0.9vw, 18px);
+  font-size: clamp(1.15rem, 1.2vw, 1.8rem);
+  text-align: left;
+}
+
+.table th {
+  color: #cbd7e6;
+  font-size: clamp(1rem, 1vw, 1.5rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: #151b22;
+}
+
+.table td:nth-child(2),
+.table td:nth-child(3),
+.table th:nth-child(2),
+.table th:nth-child(3) {
+  text-align: right;
+}
+
+.format-row td {
+  font-weight: 700;
+  background: var(--accent-soft);
+}
+
+.format-head-row td {
+  background: #1b2430;
+  color: #cfe2ff;
+  font-size: clamp(1rem, 1vw, 1.4rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.loading-card,
+.empty-card {
+  background: var(--panel);
+  border: 1px solid #262d38;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: clamp(1rem, 1vw, 1.6rem);
+  font-weight: 600;
+}
+
+.sheet-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid #262d38;
+  background: rgba(15, 19, 25, 0.94);
+  backdrop-filter: blur(6px);
+}
+
+.sheet-label {
+  font-size: clamp(0.9rem, 0.8vw, 1.2rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #b8c6d6;
+  white-space: nowrap;
+}
+
+.sheet-tabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  padding: 4px 2px 6px;
+}
+
+.sheet-tabs::-webkit-scrollbar {
+  height: 8px;
+}
+
+.sheet-tabs::-webkit-scrollbar-thumb {
+  background: #2a3442;
+  border-radius: 999px;
+}
+
+.sheet-tab {
+  border: 1px solid #2a3442;
+  background: var(--tab-bg);
+  color: #cbd7e6;
+  font-weight: 700;
+  font-size: clamp(1rem, 0.95vw, 1.4rem);
+  border-radius: 10px 10px 0 0;
+  padding: 10px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  transition: 180ms ease;
+}
+
+.sheet-tab:hover {
+  border-color: #3a4554;
+  background: #1b2430;
+}
+
+.sheet-tab.active {
+  background: #0f141b;
+  color: #6fb4ff;
+  border-color: #31507c;
+  box-shadow: inset 0 -2px 0 #6fb4ff;
+}
+
+body.fullscreen-mode .section-list,
+body.fullscreen-mode .sheet-bar,
+body.fullscreen-mode .sheet-tabs {
+  display: none !important;
+}
+
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #0b0d10;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.login-overlay[hidden] {
+  display: none;
+}
+
+.login-card {
+  width: min(420px, 100%);
+  background: var(--panel);
+  border: 1px solid #262d38;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 22px;
+  display: grid;
+  gap: 12px;
+}
+
+.login-card h2 {
+  margin: 0;
+  font-size: clamp(1.2rem, 1.4vw, 1.8rem);
+}
+
+.login-card label {
+  font-size: clamp(0.95rem, 0.95vw, 1.15rem);
+  color: #cbd7e6;
+  font-weight: 600;
+}
+
+.login-card input {
+  border: 1px solid #2a3442;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #0f141b;
+  color: var(--ink);
+}
+
+.login-error {
+  margin: 0;
+  color: #ffb3b3;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  body {
+    font-size: 16px;
+  }
+
+  .page {
+    padding: 10px 10px 8px;
+  }
+
+  .hero {
+    border-radius: 14px;
+    padding: 52px 14px 14px;
+  }
+
+  .hero-top-actions {
+    top: 10px;
+    right: 10px;
+  }
+
+  .tv-id-badge {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+
+  .hero-master,
+  .hero-section {
+    font-size: clamp(1.1rem, 4.8vw, 1.7rem);
+  }
+
+  .table th,
+  .table td {
+    font-size: clamp(0.95rem, 3vw, 1.15rem);
+  }
+
+  .split-view {
+    grid-template-columns: 1fr;
+  }
+
+  .product-title {
+    font-size: clamp(1rem, 4vw, 1.4rem);
+  }
+
+  .product-total {
+    font-size: clamp(1.1rem, 4.5vw, 1.7rem);
+  }
+}
+.section-table-card {
+  background: #0f141b;
+  border: 1px solid #2a3442;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.section-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: #0f141b;
+  color: var(--ink);
+}
+
+.section-table th,
+.section-table td {
+  border: 1px solid #2a3442;
+  padding: 6px 10px;
+  font-size: clamp(1rem, 1.15vw, 1.8rem);
+  line-height: 1.15;
+}
+
+.section-table thead th {
+  background: #1b2430;
+  color: #ffffff;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.section-table th:first-child,
+.section-table td:first-child {
+  width: 64%;
+  text-align: left;
+}
+
+.section-table th:not(:first-child),
+.section-table td:not(:first-child),
+.section-table td.num {
+  width: 20%;
+  text-align: right;
+}
+.com-bal{
+  font-size: 15px !important;
+  padding: 2px !important;
+}
+
+.section-table tbody tr.summary-row td,
+.section-table tbody tr.master-summary-row td {
+  font-weight: 800;
+  background: #151f2a;
+}
+
+.section-table tbody tr.completed-product-row td {
+  background: #28A745;
+  color: white;
+}
+
+.section-table tbody td.completed-cell {
+  background: #143023;
+}
+
+.section-table tbody tr.completed-summary-row td {
+  font-weight: 800;
+  background: #1a3d2c;
+}
+
+#app.is-refreshing .section-table-card {
+  opacity: 0.75;
+}
+
+@media (max-width: 900px) {
+  .section-table th,
+  .section-table td {
+    padding: 6px;
+    font-size: clamp(0.9rem, 3vw, 1.2rem);
+  }
+}
+
+html[data-theme="light"] {
+  --bg-1: #f4f8ff;
+  --bg-2: #e9f1ff;
+  --panel: #ffffff;
+  --ink: #0f223a;
+  --muted: #556981;
+  --line: #c9d8eb;
+  --accent: #1e6fd9;
+  --accent-soft: #e4efff;
+  --tab-bg: #f3f8ff;
+  --shadow: 0 8px 20px rgba(22, 56, 94, 0.14);
+}
+
+html[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 10% 0%, #d5e6ff 0%, transparent 35%),
+    radial-gradient(circle at 90% 90%, #dfe9ff 0%, transparent 30%),
+    linear-gradient(125deg, var(--bg-1), var(--bg-2));
+}
+
+html[data-theme="light"] .hero {
+  background: linear-gradient(145deg, #ffffff, #eef5ff);
+  border-color: #c9d8eb;
+}
+
+html[data-theme="light"] .tv-id-badge {
+  background: #f0f6ff;
+  color: #204b83;
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .hero-section {
+  color: #11365f;
+}
+
+html[data-theme="light"] .section-pill {
+  background: #edf4ff;
+  color: #1f4f86;
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .nav-btn {
+  background: #f4f8ff;
+  color: #123a67;
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .icon-theme-btn:hover,
+html[data-theme="light"] .icon-fullscreen-btn:hover {
+  background: #e7f0ff;
+  border-color: #a9c4e4;
+}
+
+html[data-theme="light"] .logout-btn {
+  background: #fff2f2;
+  color: #b33f3f;
+  border-color: #efc5c5;
+}
+
+html[data-theme="light"] .logout-btn:hover {
+  background: #ffe9e9;
+}
+
+html[data-theme="light"] .loading-card,
+html[data-theme="light"] .empty-card {
+  border-color: #c9d8eb;
+}
+
+html[data-theme="light"] .section-table-card {
+  background: #ffffff;
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .section-table {
+  background: #ffffff;
+  color: #0f223a;
+}
+
+html[data-theme="light"] .section-table th,
+html[data-theme="light"] .section-table td {
+  border-color: #bfd3ec;
+}
+
+html[data-theme="light"] .section-table thead th {
+  background: #eaf3ff;
+  color: #133a67;
+}
+
+html[data-theme="light"] .section-table tbody tr.master-summary-row td {
+  background: #f0f6ff;
+}
+
+html[data-theme="light"] .section-table tbody tr.completed-product-row td {
+  background: #28A745;
+  color: white;
+}
+
+html[data-theme="light"] .section-table tbody td.completed-cell {
+  background: #28A745;
+  color: white;
+}
+
+html[data-theme="light"] .section-table tbody tr.completed-summary-row td {
+  background: #cfeeda;
+}
+
+html[data-theme="light"] .login-overlay {
+  background: rgba(231, 239, 252, 0.9);
+}
+
+html[data-theme="light"] .login-card {
+  border-color: #c9d8eb;
+}
+
+html[data-theme="light"] .login-card label {
+  color: #21466f;
+}
+
+html[data-theme="light"] .login-card input {
+  background: #f8fbff;
+  color: #0f223a;
+  border-color: #bfd3ec;
+}
+
+  </style>
 </head>
 <body>
   <main class="page">
@@ -48,6 +775,660 @@
     </form>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzfhXbsIg7qqBhR9_TS8VxZpgLGrz8-M_A2QD6p3J5ubHN0wEfZ4TsxQIiIvrc67aNo/exec";
+const TV_LOGIN_KEY = "tvLoginId";
+const THEME_KEY = "uiTheme";
+const DEFAULT_THEME = "light";
+const AUTO_REFRESH_MS = 5000;
+const MAX_ROWS_PER_PANEL = 13;
+
+let rawData = [];
+let activeTvId = "";
+let autoRefreshTimer = null;
+let isRefreshInFlight = false;
+let lastRowsFingerprint = "";
+
+const appEl = document.getElementById("app");
+const masterHeaderEl = document.getElementById("masterHeader");
+const sectionHeaderEl = document.getElementById("sectionHeader");
+const sectionListEl = document.getElementById("sectionList");
+const logoutBtnEl = document.getElementById("logoutBtn");
+const themeToggleBtnEl = document.getElementById("themeToggleBtn");
+const fullscreenToggleBtnEl = document.getElementById("fullscreenToggleBtn");
+const tvIdBadgeEl = document.getElementById("tvIdBadge");
+const tvLoginOverlayEl = document.getElementById("tvLoginOverlay");
+const tvLoginFormEl = document.getElementById("tvLoginForm");
+const tvIdInputEl = document.getElementById("tvIdInput");
+const tvLoginErrorEl = document.getElementById("tvLoginError");
+
+function getCurrentTheme() {
+  return document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+}
+
+function updateThemeButtonUi() {
+  if (!themeToggleBtnEl) return;
+  const iconEl = themeToggleBtnEl.querySelector("i");
+  const currentTheme = getCurrentTheme();
+  const nextTheme = currentTheme === "dark" ? "light" : "dark";
+
+  themeToggleBtnEl.setAttribute("aria-label", `Switch to ${nextTheme} theme`);
+  themeToggleBtnEl.setAttribute("title", `Switch to ${nextTheme} theme`);
+  if (iconEl) {
+    iconEl.className = currentTheme === "dark" ? "bi bi-moon-stars-fill" : "bi bi-sun-fill";
+  }
+}
+
+function applyTheme(theme, options = {}) {
+  const { persist = false } = options;
+  const normalizedTheme = theme === "light" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", normalizedTheme);
+  updateThemeButtonUi();
+
+  if (persist) {
+    localStorage.setItem(THEME_KEY, normalizedTheme);
+  }
+}
+
+function initTheme() {
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  const initialTheme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : DEFAULT_THEME;
+  applyTheme(initialTheme);
+
+  if (themeToggleBtnEl) {
+    themeToggleBtnEl.addEventListener("click", () => {
+      const nextTheme = getCurrentTheme() === "dark" ? "light" : "dark";
+      applyTheme(nextTheme, { persist: true });
+    });
+  }
+}
+
+function updateFullscreenButtonUi() {
+  if (!fullscreenToggleBtnEl) return;
+  const iconEl = fullscreenToggleBtnEl.querySelector("i");
+  const isFullscreen = Boolean(document.fullscreenElement);
+  document.body.classList.toggle("fullscreen-mode", isFullscreen);
+  fullscreenToggleBtnEl.setAttribute("aria-label", isFullscreen ? "Exit fullscreen" : "Enter fullscreen");
+  fullscreenToggleBtnEl.setAttribute("title", isFullscreen ? "Exit fullscreen" : "Enter fullscreen");
+  if (iconEl) {
+    iconEl.className = isFullscreen ? "bi bi-fullscreen-exit" : "bi bi-arrows-fullscreen";
+  }
+}
+
+async function toggleFullscreen() {
+  if (!document.fullscreenEnabled) return;
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (error) {
+    // Keep view functional even if browser blocks fullscreen.
+  } finally {
+    updateFullscreenButtonUi();
+  }
+}
+
+function normalizeTvId(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  if (/^\d+$/.test(text)) return String(Number(text));
+  return text;
+}
+
+function normalizeKey(value) {
+  return String(value ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function isTrueLike(value) {
+  const v = String(value ?? "").trim().toLowerCase();
+  return v === "true" || v === "1" || v === "yes" || v === "y";
+}
+
+function setLoginError(message) {
+  if (!tvLoginErrorEl) return;
+  const errorMessage = String(message ?? "").trim();
+  if (!errorMessage) {
+    tvLoginErrorEl.hidden = true;
+    tvLoginErrorEl.textContent = "";
+    return;
+  }
+  tvLoginErrorEl.hidden = false;
+  tvLoginErrorEl.textContent = errorMessage;
+}
+
+function getRowValue(row, aliases) {
+  if (!row || typeof row !== "object") return "";
+  const normalizedAliases = aliases.map(normalizeKey);
+  const directKey = Object.keys(row).find((key) => normalizedAliases.includes(normalizeKey(key)));
+  return directKey ? row[directKey] : "";
+}
+
+function getRowTvId(row) {
+  return normalizeTvId(getRowValue(row, ["tv", "tvid", "tv id", "tv_id"]));
+}
+
+function getRowMaster(row) {
+  return String(getRowValue(row, ["master"])).trim();
+}
+
+function getRowSection(row) {
+  return String(getRowValue(row, ["section", "group"])).trim();
+}
+
+function getRowProduct(row) {
+  return String(getRowValue(row, ["product"])).trim();
+}
+
+function getRowPacked(row) {
+  return getRowValue(row, ["packed"]);
+}
+
+function getRowTray(row) {
+  return getRowValue(row, ["tray"]);
+}
+
+function getRowTotal(row) {
+  return getRowValue(row, ["total"]);
+}
+
+function formatTimeValue(raw) {
+  if (!raw) return "";
+
+  const date = new Date(raw);
+  if (isNaN(date)) return String(raw).trim();
+
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+}
+
+function parseDateValue(raw) {
+  const text = String(raw ?? "").trim();
+  if (!text) return null;
+  const date = new Date(text);
+  return isNaN(date) ? null : date;
+}
+
+function getRowTime(row) {
+  return formatTimeValue(getRowValue(row, ["time", "timestamp"]));
+}
+
+function getRowPackedTime(row) {
+  return formatTimeValue(getRowValue(row, ["packed time", "packed_time", "packedtime"]));
+}
+
+function getRowTrayTime(row) {
+  return formatTimeValue(getRowValue(row, ["tray time", "tray_time", "traytime"]));
+}
+
+function getRowStatus(row) {
+  return String(getRowValue(row, ["status"])).trim();
+}
+
+function getRowPackedStatus(row) {
+  return String(getRowValue(row, ["packed status", "packed_status", "packedstatus"])).trim();
+}
+
+function getRowTrayStatus(row) {
+  return String(getRowValue(row, ["tray status", "tray_status", "traystatus"])).trim();
+}
+
+function isCompletedStatus(value) {
+  const v = String(value ?? "").trim().toLowerCase();
+  return v === "done" || v === "complete" || v === "completed" || v === "packed" || v === "tray";
+}
+
+function isPackedComplete(row) {
+  const packedStatus = getRowPackedStatus(row);
+  if (packedStatus) return isCompletedStatus(packedStatus);
+  return isCompletedStatus(getRowStatus(row));
+}
+
+function isTrayComplete(row) {
+  const trayStatus = getRowTrayStatus(row);
+  if (trayStatus) return isCompletedStatus(trayStatus);
+  return isCompletedStatus(getRowStatus(row));
+}
+
+function getRowCompletedTime(row) {
+  const packedComplete = isPackedComplete(row);
+  const trayComplete = isTrayComplete(row);
+  if (!(packedComplete && trayComplete)) return "";
+
+  const packedRaw = getRowValue(row, ["packed time", "packed_time", "packedtime"]);
+  const trayRaw = getRowValue(row, ["tray time", "tray_time", "traytime"]);
+  const legacyRaw = getRowValue(row, ["time", "timestamp"]);
+
+  const packedDate = parseDateValue(packedRaw);
+  const trayDate = parseDateValue(trayRaw);
+
+  // When both side timestamps are available, show the second completion time.
+  if (packedDate && trayDate) {
+    const latest = packedDate >= trayDate ? packedDate : trayDate;
+    return formatTimeValue(latest);
+  }
+
+  return formatTimeValue(legacyRaw) || formatTimeValue(trayRaw) || formatTimeValue(packedRaw) || "";
+}
+
+function showLoginOverlay() {
+  tvLoginOverlayEl.hidden = false;
+  setLoginError("");
+  window.setTimeout(() => tvIdInputEl.focus(), 0);
+}
+
+function hideLoginOverlay() {
+  tvLoginOverlayEl.hidden = true;
+}
+
+function resetViewForLoggedOut() {
+  rawData = [];
+  lastRowsFingerprint = "";
+  stopAutoRefresh();
+  updateHeader([]);
+  appEl.innerHTML = '<div class="loading-card single-card">Enter TV ID to continue.</div>';
+  updateTvIdBadge("");
+}
+
+function updateTvIdBadge(tvId) {
+  if (!tvIdBadgeEl) return;
+  const normalized = normalizeTvId(tvId);
+  tvIdBadgeEl.textContent = normalized ? `TV ID: ${normalized}` : "TV ID: -";
+}
+
+function stopAutoRefresh() {
+  if (autoRefreshTimer) {
+    window.clearInterval(autoRefreshTimer);
+    autoRefreshTimer = null;
+  }
+}
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  if (!activeTvId) return;
+  autoRefreshTimer = window.setInterval(() => {
+    refreshRowsInBackground();
+  }, AUTO_REFRESH_MS);
+}
+
+function buildApiUrl(tvId, currentOnly) {
+  const normalizedTvId = normalizeTvId(tvId);
+  const queryParts = [];
+  if (normalizedTvId) queryParts.push(`tvId=${encodeURIComponent(normalizedTvId)}`);
+  if (currentOnly) queryParts.push("currentOnly=true");
+  const separator = API_URL.includes("?") ? "&" : "?";
+  return `${API_URL}${separator}${queryParts.join("&")}`;
+}
+
+async function fetchRowsForTvId(tvId, currentOnly) {
+  const res = await fetch(buildApiUrl(tvId, currentOnly));
+  const json = await res.json();
+  return Array.isArray(json?.data) ? json.data : [];
+}
+
+function createRowsFingerprint(rows) {
+  if (!Array.isArray(rows)) return "";
+  return rows
+    .map((row) => {
+      if (!row || typeof row !== "object") return JSON.stringify(row);
+      const sorted = {};
+      Object.keys(row)
+        .sort()
+        .forEach((key) => {
+          sorted[key] = row[key];
+        });
+      return JSON.stringify(sorted);
+    })
+    .sort()
+    .join("|");
+}
+
+function applyRows(rows, tvId, options = {}) {
+  const { forceRender = false, animate = false } = options;
+  activeTvId = normalizeTvId(tvId);
+  updateTvIdBadge(activeTvId);
+  rawData = Array.isArray(rows) ? rows : [];
+
+  const nextFingerprint = createRowsFingerprint(rawData);
+  const changed = forceRender || nextFingerprint !== lastRowsFingerprint;
+  if (changed) {
+    lastRowsFingerprint = nextFingerprint;
+    renderDataView({ animate });
+  }
+
+  return { matchCount: rawData.length, changed };
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function formatNumberLike(value) {
+  if (value === null || value === undefined) return "-";
+  const text = String(value).trim();
+  if (!text) return "-";
+  if (text === "-") return "-";
+  const num = Number(text);
+  if (Number.isFinite(num)) return num.toFixed(2);
+  return text;
+}
+
+function updateHeader(rows) {
+  const masters = [...new Set(rows.map((row) => getRowMaster(row)).filter(Boolean))].sort();
+  const sections = [...new Set(rows.map((row) => getRowSection(row)).filter(Boolean))].sort();
+
+  if (!rows.length) {
+    masterHeaderEl.textContent = "Master: -";
+    sectionHeaderEl.textContent = "Section: -";
+    sectionListEl.innerHTML = "";
+    return;
+  }
+
+  if (masters.length === 1) {
+    masterHeaderEl.textContent = "MASTER: " + masters[0].toUpperCase();
+  } else if (masters.length > 1) {
+    masterHeaderEl.textContent = "MASTER: " + masters.map((m) => m.toUpperCase()).join(" | ");
+  } else {
+    masterHeaderEl.textContent = "MASTER";
+  }
+
+  if (sections.length === 1) {
+    sectionHeaderEl.textContent = sections[0].toUpperCase();
+    sectionListEl.innerHTML = "";
+    return;
+  }
+
+  sectionHeaderEl.textContent = sections.length ? `SECTIONS (${sections.length})` : "Section: -";
+  sectionListEl.innerHTML = sections
+    .map((section) => `<span class="section-pill">${escapeHtml(section.toUpperCase())}</span>`)
+    .join("");
+}
+
+function buildSectionTableHtml(rows) {
+  const sections = [...new Set(rows.map((row) => getRowSection(row)).filter(Boolean))];
+  const sectionTitle = sections[0] || "SECTION";
+  const masters = [...new Set(rows.map((row) => getRowMaster(row)).filter(Boolean))];
+  const masterName = masters[0] || "MASTER";
+
+  let summaryRow = rows.find((row) => {
+    const product = getRowProduct(row);
+    const master = getRowMaster(row);
+    return product && master && product.toLowerCase() === master.toLowerCase();
+  });
+
+  // Fallback when explicit master-total row is not present in data.
+  if (!summaryRow) {
+    const totals = rows.reduce(
+      (acc, row) => {
+        const packed = Number(String(getRowPacked(row) ?? "").trim());
+        const tray = Number(String(getRowTray(row) ?? "").trim());
+        const total = Number(String(getRowTotal(row) ?? "").trim());
+        if (Number.isFinite(packed)) acc.packed += packed;
+        if (Number.isFinite(tray)) acc.tray += tray;
+        if (Number.isFinite(total)) acc.total += total;
+        return acc;
+      },
+      { packed: 0, tray: 0, total: 0 }
+    );
+    summaryRow = {
+      product: masterName,
+      packed: totals.packed.toFixed(2),
+      tray: totals.tray.toFixed(2),
+      total: totals.total.toFixed(2)
+    };
+  }
+
+  const bodyRows = rows.filter((row) => {
+    const product = getRowProduct(row);
+    const master = getRowMaster(row);
+    return !(product && master && product.toLowerCase() === master.toLowerCase());
+  });
+  const completedSums = bodyRows.reduce(
+    (acc, row) => {
+      const packedComplete = isPackedComplete(row);
+      const trayComplete = isTrayComplete(row);
+      const packed = Number(String(getRowPacked(row) ?? "").trim());
+      const tray = Number(String(getRowTray(row) ?? "").trim());
+      const total = Number(String(getRowTotal(row) ?? "").trim());
+      if (packedComplete && Number.isFinite(packed)) acc.packed += packed;
+      if (trayComplete && Number.isFinite(tray)) acc.tray += tray;
+      if ((packedComplete || trayComplete) && Number.isFinite(total)) acc.total += total;
+      return acc;
+    },
+    { packed: 0, tray: 0, total: 0 }
+  );
+
+  const chunks = [];
+  const firstChunkSize = Math.max(1, MAX_ROWS_PER_PANEL - 1); // first panel includes summary row
+  if (bodyRows.length <= firstChunkSize) {
+    chunks.push(bodyRows);
+  } else {
+    chunks.push(bodyRows.slice(0, firstChunkSize));
+    for (let i = firstChunkSize; i < bodyRows.length; i += MAX_ROWS_PER_PANEL) {
+      chunks.push(bodyRows.slice(i, i + MAX_ROWS_PER_PANEL));
+    }
+  }
+  if (!chunks.length) {
+    chunks.push([]);
+  }
+
+  const renderBodyRows = (chunk) =>
+    chunk
+      .map((row) => {
+        const product = getRowProduct(row) || "-";
+        const packedComplete = isPackedComplete(row);
+        const trayComplete = isTrayComplete(row);
+        const rowComplete = packedComplete && trayComplete;
+        const completedRowClass = rowComplete ? "completed-product-row" : "";
+        const packedCellClass = packedComplete && !rowComplete ? "completed-cell" : "";
+        const trayCellClass = trayComplete && !rowComplete ? "completed-cell" : "";
+        return `
+          <tr class="${completedRowClass}">
+            <td>${escapeHtml(product.toUpperCase())}</td>
+            <td class="num ${packedCellClass}">${escapeHtml(formatNumberLike(getRowPacked(row)))}</td>
+            <td class="num ${trayCellClass}">${escapeHtml(formatNumberLike(getRowTray(row)))}</td>
+            <td class="num">${escapeHtml(formatNumberLike(getRowTotal(row)))}</td>
+            <td>${escapeHtml(getRowCompletedTime(row) || "-")}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+  const tablesHtml = chunks
+    .map((chunk, index) => {
+      const summaryPackedNum = Number(String(summaryRow.packed ?? "").trim());
+      const summaryTrayNum = Number(String(summaryRow.tray ?? "").trim());
+      const summaryTotalNum = Number(String(summaryRow.total ?? "").trim());
+      const balancePacked = Number.isFinite(summaryPackedNum) ? summaryPackedNum - completedSums.packed : null;
+      const balanceTray = Number.isFinite(summaryTrayNum) ? summaryTrayNum - completedSums.tray : null;
+      const balanceTotal = Number.isFinite(summaryTotalNum) ? summaryTotalNum - completedSums.total : null;
+      const summaryHtml =
+        index === 0
+          ? `
+            <tr class="master-summary-row">
+              <td>${escapeHtml(String(summaryRow.product || masterName).toUpperCase())}</td>
+              <td class="num">${escapeHtml(formatNumberLike(summaryRow.packed))}</td>
+              <td class="num">${escapeHtml(formatNumberLike(summaryRow.tray))}</td>
+              <td class="num">${escapeHtml(formatNumberLike(summaryRow.total))}</td>
+              <td>-</td>
+            </tr>
+          `
+          : "";
+      const completedSummaryHtml =
+        index === chunks.length - 1
+          ? `
+            <tr class="completed-summary-row">
+              <td>COMPLETED-BALANCE</td>
+              <td class="num com-bal">${escapeHtml(
+                `${formatNumberLike(completedSums.packed)}-${formatNumberLike(balancePacked)}`
+              )}</td>
+              <td class="num com-bal">${escapeHtml(
+                `${formatNumberLike(completedSums.tray)}-${formatNumberLike(balanceTray)}`
+              )}</td>
+              <td class="num com-bal">${escapeHtml(
+                `${formatNumberLike(completedSums.total)}-${formatNumberLike(balanceTotal)}`
+              )}</td>
+              <td>-</td>
+            </tr>
+          `
+          : "";
+      return `
+        <article class="section-table-card single-card">
+          <table class="section-table">
+            <thead>
+              <tr>
+                <th>${escapeHtml(sectionTitle.toUpperCase())}</th>
+                <th>PACKED</th>
+                <th>TRAY</th>
+                <th>TOTAL</th>
+                <th>TIME</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${summaryHtml}
+              ${renderBodyRows(chunk)}
+              ${completedSummaryHtml}
+            </tbody>
+          </table>
+        </article>
+      `;
+    })
+    .join("");
+
+  const wrapperClass = chunks.length > 1 ? "split-view" : "split-view single";
+  return `<div class="${wrapperClass}">${tablesHtml}</div>`;
+}
+
+function renderDataView(options = {}) {
+  const { animate = false } = options;
+  updateHeader(rawData);
+
+  if (!rawData.length) {
+    appEl.innerHTML = '<div class="empty-card single-card">No active section for this TV.</div>';
+    return;
+  }
+
+  appEl.innerHTML = buildSectionTableHtml(rawData);
+  if (animate) {
+    appEl.classList.add("is-refreshing");
+    window.requestAnimationFrame(() => {
+      appEl.classList.remove("is-refreshing");
+    });
+  }
+}
+
+async function refreshRowsInBackground() {
+  if (!activeTvId || isRefreshInFlight) return;
+  isRefreshInFlight = true;
+  try {
+    const rows = await fetchRowsForTvId(activeTvId, true);
+    applyRows(rows, activeTvId, { animate: true });
+  } catch (error) {
+    // Ignore transient network errors and keep the current TV view visible.
+  } finally {
+    isRefreshInFlight = false;
+  }
+}
+
+if (fullscreenToggleBtnEl) {
+  fullscreenToggleBtnEl.addEventListener("click", () => {
+    toggleFullscreen();
+  });
+  updateFullscreenButtonUi();
+}
+
+document.addEventListener("fullscreenchange", () => {
+  updateFullscreenButtonUi();
+});
+
+async function loadForActiveTv(tvId) {
+  const allRows = await fetchRowsForTvId(tvId, false);
+  if (!allRows.length) {
+    return { hasTvRows: false, currentRows: [] };
+  }
+  const currentOnlyRows = await fetchRowsForTvId(tvId, true);
+  const currentRows = currentOnlyRows.length
+    ? currentOnlyRows
+    : allRows.filter((row) => isTrueLike(getRowValue(row, ["screen"])));
+  return { hasTvRows: true, currentRows };
+}
+
+async function init() {
+  const savedTvId = normalizeTvId(localStorage.getItem(TV_LOGIN_KEY));
+  if (savedTvId) {
+    activeTvId = savedTvId;
+    updateTvIdBadge(activeTvId);
+    hideLoginOverlay();
+  } else {
+    showLoginOverlay();
+    resetViewForLoggedOut();
+  }
+
+  tvLoginFormEl.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const enteredTvId = normalizeTvId(tvIdInputEl.value);
+    if (!enteredTvId) {
+      setLoginError("Please enter TV ID.");
+      return;
+    }
+
+    appEl.innerHTML = '<div class="loading-card single-card">Loading...</div>';
+    try {
+      const result = await loadForActiveTv(enteredTvId);
+      if (!result.hasTvRows) {
+        setLoginError(`No data found for TV ID ${enteredTvId}.`);
+        resetViewForLoggedOut();
+        return;
+      }
+
+      applyRows(result.currentRows, enteredTvId, { forceRender: true });
+      setLoginError("");
+      localStorage.setItem(TV_LOGIN_KEY, enteredTvId);
+      hideLoginOverlay();
+      startAutoRefresh();
+    } catch (error) {
+      setLoginError("Unable to load data. Please try again.");
+      resetViewForLoggedOut();
+    }
+  });
+
+  logoutBtnEl.addEventListener("click", () => {
+    localStorage.removeItem(TV_LOGIN_KEY);
+    activeTvId = "";
+    showLoginOverlay();
+    resetViewForLoggedOut();
+  });
+
+  try {
+    if (activeTvId) {
+      const result = await loadForActiveTv(activeTvId);
+      if (!result.hasTvRows) {
+        localStorage.removeItem(TV_LOGIN_KEY);
+        activeTvId = "";
+        resetViewForLoggedOut();
+        setLoginError("Saved TV ID has no matching data. Please login again.");
+        showLoginOverlay();
+      } else {
+        applyRows(result.currentRows, activeTvId, { forceRender: true });
+        startAutoRefresh();
+      }
+    }
+  } catch (error) {
+    appEl.innerHTML = '<div class="empty-card single-card">Unable to load data. Please try again.</div>';
+  }
+}
+
+initTheme();
+init();
+
+  </script>
 </body>
 </html>
