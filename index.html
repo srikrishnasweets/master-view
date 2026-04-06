@@ -1064,9 +1064,23 @@ function buildApiUrl(tvId, currentOnly) {
 }
 
 async function fetchRowsForTvId(tvId, currentOnly) {
-  const res = await fetch(buildApiUrl(tvId, currentOnly));
-  const json = await res.json();
-  return Array.isArray(json?.data) ? json.data : [];
+  try {
+    const res = await fetch(buildApiUrl(tvId, currentOnly), { cache: "no-store" });
+
+    if (!res.ok) throw new Error("HTTP error");
+
+    const json = await res.json();
+
+    if (!Array.isArray(json?.data)) {
+      throw new Error("Invalid format");
+    }
+
+    return { ok: true, data: json.data };
+
+  } catch (error) {
+    console.warn("Fetch failed:", error);
+    return { ok: false, data: [] };
+  }
 }
 
 function createRowsFingerprint(rows) {
@@ -1327,12 +1341,26 @@ function renderDataView(options = {}) {
 
 async function refreshRowsInBackground() {
   if (!activeTvId || isRefreshInFlight) return;
+
   isRefreshInFlight = true;
+
   try {
-    const rows = await fetchRowsForTvId(activeTvId, true);
-    applyRows(rows, activeTvId, { animate: true });
+    const res = await fetchRowsForTvId(activeTvId, true);
+
+    if (!res.ok) {
+      console.warn("Skip refresh - network issue");
+      return;
+    }
+
+    if (!res.data.length) {
+      console.warn("Skip refresh - empty response");
+      return;
+    }
+
+    applyRows(res.data, activeTvId, { animate: true });
+
   } catch (error) {
-    // Ignore transient network errors and keep the current TV view visible.
+    console.warn("Refresh error:", error);
   } finally {
     isRefreshInFlight = false;
   }
@@ -1350,15 +1378,23 @@ document.addEventListener("fullscreenchange", () => {
 });
 
 async function loadForActiveTv(tvId) {
-  const allRows = await fetchRowsForTvId(tvId, false);
-  if (!allRows.length) {
-    return { hasTvRows: false, currentRows: [] };
+  const allRes = await fetchRowsForTvId(tvId, false);
+
+  if (!allRes.ok) {
+    return { status: "ERROR" };
   }
-  const currentOnlyRows = await fetchRowsForTvId(tvId, true);
-  const currentRows = currentOnlyRows.length
-    ? currentOnlyRows
-    : allRows.filter((row) => isTrueLike(getRowValue(row, ["screen"])));
-  return { hasTvRows: true, currentRows };
+
+  if (!allRes.data.length) {
+    return { status: "EMPTY" };
+  }
+
+  const currentRes = await fetchRowsForTvId(tvId, true);
+
+  const currentRows = currentRes.ok && currentRes.data.length
+    ? currentRes.data
+    : allRes.data.filter((row) => isTrueLike(getRowValue(row, ["screen"])));
+
+  return { status: "OK", currentRows };
 }
 
 async function init() {
@@ -1383,11 +1419,15 @@ async function init() {
     appEl.innerHTML = '<div class="loading-card single-card">Loading...</div>';
     try {
       const result = await loadForActiveTv(enteredTvId);
-      if (!result.hasTvRows) {
-        setLoginError(`No data found for TV ID ${enteredTvId}.`);
-        resetViewForLoggedOut();
-        return;
-      }
+      if (result.status === "ERROR") {
+  setLoginError("Network error. Try again.");
+  return;
+}
+
+if (result.status === "EMPTY") {
+  setLoginError(`No data found for TV ID ${enteredTvId}.`);
+  return;
+}
 
       applyRows(result.currentRows, enteredTvId, { forceRender: true });
       setLoginError("");
@@ -1411,12 +1451,11 @@ async function init() {
     if (activeTvId) {
       const result = await loadForActiveTv(activeTvId);
       if (!result.hasTvRows) {
-        localStorage.removeItem(TV_LOGIN_KEY);
-        activeTvId = "";
-        resetViewForLoggedOut();
-        setLoginError("Saved TV ID has no matching data. Please login again.");
-        showLoginOverlay();
-      } else {
+  console.warn("No data for saved TV ID, keeping session");
+  appEl.innerHTML = '<div class="empty-card single-card">Waiting for data...</div>';
+  startAutoRefresh();
+  return;
+} else {
         applyRows(result.currentRows, activeTvId, { forceRender: true });
         startAutoRefresh();
       }
